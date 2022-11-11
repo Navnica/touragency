@@ -1,5 +1,10 @@
 import uvicorn
-from routers.user import router
+import fastapi
+from routers.user import router as user_router
+
+app = fastapi.FastAPI()
+
 
 if __name__ == '__main__':
-    uvicorn.run(router)
+    app.include_router(user_router)
+    uvicorn.run(app)
