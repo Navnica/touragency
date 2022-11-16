@@ -14,8 +14,8 @@ class Ticket(BaseModelModify):
     user_id: int
 
 
-class User(BaseModel):
-    name: Optional[str]
+class User(BaseModelModify):
+    name: str
     surname: str
     phone: str
 
