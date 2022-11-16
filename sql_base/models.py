@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from fastapi import Query
 
 
 class BaseModelModify(BaseModel):
@@ -7,27 +8,27 @@ class BaseModelModify(BaseModel):
 
 
 class Ticket(BaseModelModify):
-    tour_id: Optional[int]
-    date_start: Optional[str]
-    date_end: Optional[str]
-    user_id: Optional[int]
+    tour_id: int
+    date_start: str
+    date_end: str
+    user_id: int
 
 
-class User(BaseModelModify):
+class User(BaseModel):
     name: Optional[str]
-    surname: Optional[str]
-    phone: Optional[str]
+    surname: str
+    phone: str
 
 
 class Tour(BaseModelModify):
-    country_id: Optional[int]
-    hours: Optional[int]
-    price: Optional[float]
+    country_id: int
+    hours: int
+    price: float
 
 
 class Country(BaseModelModify):
-    name: Optional[str]
+    name: str
 
 
 class Personal(User):
-    power_level: Optional[int]
+    power_level: int

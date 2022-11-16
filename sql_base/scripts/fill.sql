@@ -5,12 +5,12 @@ insert into Country (name) values ("China");
 insert into Country (name) values ("France");
 insert into Country (name) values ("Russian Empire");
 
-insert into User (name, surname, number) values ("Vladimir", "Lenin", "12345678910");
-insert into User (name, surname, number) values ("Nikolay", "Romanov", "13245678910");
-insert into User (name, surname, number) values ("Adolf", "Hitler", "12535678910");
-insert into User (name, surname, number) values ("Vladimir", "Putin", "12345678999");
-insert into User (name, surname, number) values ("Napoleon", "Bonaparte", "92345678910");
-insert into User (name, surname, number) values ("Ci", "Pin", "22345678910");
+insert into User (name, surname, phone) values ("Vladimir", "Lenin", "12345678910");
+insert into User (name, surname, phone) values ("Nikolay", "Romanov", "13245678910");
+insert into User (name, surname, phone) values ("Adolf", "Hitler", "12535678910");
+insert into User (name, surname, phone) values ("Vladimir", "Putin", "12345678999");
+insert into User (name, surname, phone) values ("Napoleon", "Bonaparte", "92345678910");
+insert into User (name, surname, phone) values ("Ci", "Pin", "22345678910");
 
 insert into Tour (countryId, hours, price) values (1, 744, 2500);
 insert into Tour (countryId, hours, price) values (2, 72, 25);
