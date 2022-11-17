@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 from typing import Optional
-from fastapi import Query
 
 
 class BaseModelModify(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
 
 
 class Ticket(BaseModelModify):

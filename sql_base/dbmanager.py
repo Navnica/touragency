@@ -35,10 +35,9 @@ class DbManager:
                 res = connect.execute(query, args).fetchone()[0]
             else:
                 res = cursor.execute(query).fetchall()
-                res = res[0] if len(res) == 1 else res
         except sqlite3.IntegrityError:
             connect.close()
-            return {'error': 'Same phone-number exists in database'}
+            return {'error': 'request contains unique error'}
 
         connect.commit()
         connect.close()
