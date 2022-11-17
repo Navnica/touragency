@@ -2,7 +2,7 @@ from sql_base.dbmanager import DbManager
 from sql_base.models import User
 
 
-def get_user(user_id: int) -> User | None:
+def get(user_id: int) -> User | None:
     res = DbManager(
         db_path='sql_base/touragency.db').execute_query(
         f'select * from User where id={user_id}'
@@ -16,7 +16,7 @@ def get_user(user_id: int) -> User | None:
     )
 
 
-def get_all_users() -> list[User] | None:
+def get_all() -> list[User] | dict:
     user_list = DbManager(
         db_path='sql_base/touragency.db').execute_query(
         query="select * from User")
@@ -31,26 +31,31 @@ def get_all_users() -> list[User] | None:
                 surname=user[2],
                 phone=user[3]
             ))
-    else:
-        res = None
 
     return res
 
 
-def create_user(user: User) -> int | dict:
-    return DbManager(db_path='sql_base/touragency.db').execute_query(
-        query="insert into User (name, surname, phone) values(?,?,?) returning id",
-        insert=True,
-        args=(user.name, user.surname, user.phone))
-
-
-def update_user(user_id: int, new_data: User) -> User:
-    return DbManager(db_path='sql_base/touragency.db').execute_query(
-        query=f"update User set (name, surname, phone) = ('{new_data.name}', '{new_data.surname}', '{new_data.phone}') where id={user_id}")
-
-
-def delete_user(user_id: int) -> None:
+def remove(user_id: int) -> None:
     return DbManager(
         db_path='sql_base/touragency.db').execute_query(
         f'delete from User where id={user_id}'
     )
+
+
+def create(new_user: User) -> int | dict:
+    res = DbManager(db_path='sql_base/touragency.db').execute_query(
+        query="insert into User (name, surname, phone) values(?,?,?) returning id",
+        insert=True,
+        args=(new_user.name, new_user.surname, new_user.phone))
+
+    if type(res) != dict:
+        res = get(res)
+
+    return res
+
+
+def update(user_id: int, new_data: User) -> None:
+    return DbManager(db_path='sql_base/touragency.db').execute_query(
+        query=f"update User set (name, surname, phone) = ('{new_data.name}', '{new_data.surname}', '{new_data.phone}') where id={user_id}")
+
+

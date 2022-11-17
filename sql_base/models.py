@@ -30,4 +30,4 @@ class Country(BaseModelModify):
 
 
 class Personal(User):
-    power_level: int
+    power_level: int = 1
