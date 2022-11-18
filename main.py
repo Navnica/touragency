@@ -17,4 +17,4 @@ def index() -> RedirectResponse:
 
 if __name__ == '__main__':
     DbManager('sql_base/touragency.db').create_db('sql_base/scripts/create.sql')
-    uvicorn.run("main:app", reload=True, host='192.168.1.160')
+    uvicorn.run("main:app", reload=True, host='localhost')
