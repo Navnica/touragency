@@ -1,12 +1,11 @@
 from sql_base.dbmanager import DbManager
 from sql_base.models import User
 
+dbmanager = DbManager(db_path='sql_base/touragency.db')
+
 
 def get(user_id: int) -> User | None:
-    res = DbManager(
-        db_path='sql_base/touragency.db').execute_query(
-        f'select * from User where id={user_id}'
-    )
+    res = dbmanager.execute_query(f'select * from User where id={user_id}')
 
     return None if not res else User(
         id=res[0][0],
@@ -17,9 +16,7 @@ def get(user_id: int) -> User | None:
 
 
 def get_all() -> list[User] | dict:
-    user_list = DbManager(
-        db_path='sql_base/touragency.db').execute_query(
-        query="select * from User")
+    user_list = dbmanager.execute_query(query="select * from User")
 
     res = []
 
@@ -36,14 +33,11 @@ def get_all() -> list[User] | dict:
 
 
 def remove(user_id: int) -> None:
-    return DbManager(
-        db_path='sql_base/touragency.db').execute_query(
-        f'delete from User where id={user_id}'
-    )
+    return dbmanager.execute_query(f'delete from User where id={user_id}')
 
 
 def create(new_user: User) -> int | dict:
-    res = DbManager(db_path='sql_base/touragency.db').execute_query(
+    res = dbmanager.execute_query(
         query="insert into User (name, surname, phone) values(?,?,?) returning id",
         insert=True,
         args=(new_user.name, new_user.surname, new_user.phone))
@@ -55,7 +49,7 @@ def create(new_user: User) -> int | dict:
 
 
 def update(user_id: int, new_data: User) -> None:
-    return DbManager(db_path='sql_base/touragency.db').execute_query(
+    return dbmanager.execute_query(
         query=f"update User set (name, surname, phone) = ('{new_data.name}', '{new_data.surname}', '{new_data.phone}') where id={user_id}")
 
 

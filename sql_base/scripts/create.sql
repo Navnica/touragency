@@ -38,6 +38,6 @@ create table Personal(
 	id integer primary key autoincrement,
 	name varchar(256) not null,
 	surname varchar(256) not null,
-	number varchar(12) not null unique,
+	phone varchar(12) not null unique,
 	power_level integer not null
 );

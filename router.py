@@ -1,3 +1,3 @@
-from routers import user, personal
+from routers import user, personal, country
 
-routers = (user.router, personal.router)
+routers = (user.router, personal.router, country.router)
