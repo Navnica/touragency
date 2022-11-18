@@ -1,3 +1,6 @@
+import pydentic.exceptions
+import typing
+
 import fastapi
 from resolves import user
 from sql_base.models import User
@@ -16,7 +19,7 @@ def get_all() -> list[User] | dict:
 
 
 @router.get('/remove/{user_id}', response_model=None)
-def remove(user_id: int):
+def remove(user_id: int) -> None:
     return user.remove(user_id)
 
 

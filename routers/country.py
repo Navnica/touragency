@@ -16,7 +16,7 @@ def get_all() -> list[Country] | dict:
 
 
 @router.get('/remove/{country_id}', response_model=None)
-def remove(country_id: int):
+def remove(country_id: int) -> None:
     return country.remove(country_id)
 
 

@@ -16,7 +16,7 @@ def get_all() -> list[Personal]:
 
 
 @router.get('/remove/{personal_id}', response_model=None)
-def remove(personal_id: int):
+def remove(personal_id: int) -> None:
     return personal.remove(personal_id)
 
 
@@ -26,6 +26,6 @@ def create(new_personal: Personal) -> Personal | dict:
 
 
 @router.put("/update/{personal_id}", response_model=None)
-def update(personal_id: int, new_data: Personal):
+def update(personal_id: int, new_data: Personal) -> None:
     return personal.update(personal_id, new_data)
 

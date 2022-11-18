@@ -27,12 +27,12 @@ class DbManager:
         connect.commit()
         connect.close()
 
-    def execute_query(self, query: str, insert: bool = False, args: tuple = None):
+    def execute_query(self, query: str, fetchone: bool = True, args: tuple = None):
         connect, cursor = self.connect_db()
 
         try:
-            if insert:
-                res = connect.execute(query, args).fetchone()[0]
+            if fetchone:
+                res = connect.execute(query, args).fetchone()
             else:
                 res = cursor.execute(query).fetchall()
         except sqlite3.IntegrityError:

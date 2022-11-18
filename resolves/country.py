@@ -4,16 +4,20 @@ from .user import dbmanager
 
 
 def get(country_id: int) -> Country | None:
-    res = dbmanager.execute_query(f'select * from Country where id={country_id}')
+    res = dbmanager.execute_query(
+        query='select * from Country where id=(?)',
+        args=(country_id,))
 
     return None if not res else Country(
-        id=res[0][0],
-        name=res[0][1]
+        id=res[0],
+        name=res[1]
     )
 
 
 def get_all() -> list[Country] | dict:
-    country_list = dbmanager.execute_query(query="select * from Country")
+    country_list = dbmanager.execute_query(
+        query="select * from Country",
+        fetchone=False)
 
     res = []
 
@@ -28,19 +32,23 @@ def get_all() -> list[Country] | dict:
 
 
 def remove(country_id: int) -> None:
-    return dbmanager.execute_query(f'delete from Country where id={country_id}')
+    return dbmanager.execute_query(
+        query='delete from Country where id=(?)',
+        args=(country_id,))
 
 
 def create(new_country: Country) -> int | dict:
     res = dbmanager.execute_query(
-        query=f"insert into Country (name) values('{new_country.name}') returning id",)[0][0]
+        query="insert into Country (name) values(?) returning id",
+        args=(new_country.name,))
 
     if type(res) != dict:
-        res = get(res)
+        res = get(res[0])
 
     return res
 
+
 def update(country_id: int, new_data: Country) -> None:
     return dbmanager.execute_query(
-        query=f"update Country set (name) = ('{new_data.name}') where id={country_id}")
-
+        query="update Country set (name) = (?) where id=(?)",
+        args=(new_data.name, country_id))
