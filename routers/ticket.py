@@ -1,33 +1,32 @@
 import pydentic.exceptions
 import typing
-
 import fastapi
-from resolves import user
-from sql_base.models import User
+from resolves import ticket
+from sql_base.models import Ticket
 
-router = fastapi.APIRouter(prefix='/user', tags=['User'])
-
-
-@router.get('/get/{user_id}', response_model=User | None)
-def get(user_id: int) -> User | None:
-    return user.get(user_id)
+router = fastapi.APIRouter(prefix='/ticket', tags=['Ticket'])
 
 
-@router.get('/get_all', response_model=list[User] | dict)
-def get_all() -> list[User] | dict:
-    return user.get_all()
+@router.get('/get/{ticket_id}', response_model=Ticket | None)
+def get(ticket_id: int) -> Ticket | None:
+    return ticket.get(ticket_id)
 
 
-@router.get('/remove/{user_id}', response_model=None)
-def remove(user_id: int) -> None:
-    return user.remove(user_id)
+@router.get('/get_all', response_model=list[Ticket] | dict)
+def get_all() -> list[Ticket] | dict:
+    return ticket.get_all()
 
 
-@router.post('/create/', response_model=User | dict)
-def create(new_user: User) -> User | dict:
-    return user.create(new_user)
+@router.get('/remove/{ticket_id}', response_model=None)
+def remove(ticket_id: int) -> None:
+    return ticket.remove(ticket_id)
 
 
-@router.put("/update/{user_id}", response_model=None)
-def update(user_id: int, new_data: User):
-    return user.update(user_id=user_id, new_data=new_data)
+@router.post('/create/', response_model=Ticket | dict)
+def create(new_ticket: Ticket) -> Ticket | dict:
+    return ticket.create(new_ticket)
+
+
+@router.put("/update/{ticket_id}", response_model=None)
+def update(ticket_id: int, new_data: Ticket):
+    return ticket.update(ticket_id=ticket_id, new_data=new_data)

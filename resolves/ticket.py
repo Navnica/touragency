@@ -45,7 +45,7 @@ def remove(ticket_id: int) -> None:
 
 def create(new_ticket: Ticket) -> int | dict:
     res = dbmanager.execute_query(
-        query="insert into Tour (tourId, date_start, date_end, userId) values(?,?,?,?) returning id",
+        query="insert into Ticket (tourId, date_start, date_end, userId) values(?,?,?,?) returning id",
         args=(new_ticket.tour_id, new_ticket.date_start, new_ticket.date_end, new_ticket.user_id))
 
     if type(res) != dict:
@@ -56,6 +56,6 @@ def create(new_ticket: Ticket) -> int | dict:
 
 def update(ticket_id: int, new_data: Ticket) -> None:
     return dbmanager.execute_query(
-        query="update Tour set (tourId, date_start, date_end, userId) = (?,?,?,?) where id=(?)",
-        args=(new_data.tour_id, new_data.date_start, new_data.date_end, new_data.user_id,ticket_id))
+        query="update Ticket set (tourId, date_start, date_end, userId) = (?,?,?,?) where id=(?)",
+        args=(new_data.tour_id, new_data.date_start, new_data.date_end, new_data.user_id, ticket_id))
 
