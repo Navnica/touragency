@@ -53,3 +53,5 @@ def update(user_id: int, new_data: User) -> None:
         args=(new_data.name, new_data.surname, new_data.phone, user_id))
 
 
+def login(user: User) -> User:
+    pass

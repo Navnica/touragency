@@ -1,5 +1,4 @@
 from sql_base.models import Personal
-from sql_base.dbmanager import DbManager
 from .user import dbmanager
 
 

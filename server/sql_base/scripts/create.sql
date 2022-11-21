@@ -21,7 +21,9 @@ create table User(
 	id integer primary key autoincrement,
 	name varchar(256) not null,
 	surname varchar(256) not null,
-	phone varchar(12) not null unique
+	phone varchar(12) not null unique,
+	login varchar(12) not null unique,
+	password varchar(12) not null unique
 );
 
 create table Ticket(
@@ -39,5 +41,7 @@ create table Personal(
 	name varchar(256) not null,
 	surname varchar(256) not null,
 	phone varchar(12) not null unique,
-	power_level integer not null
+	power_level integer not null,
+	login varchar(12) not null unique,
+	password varchar(12) not null unique
 );

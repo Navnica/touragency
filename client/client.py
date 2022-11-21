@@ -1,7 +1,9 @@
-from MainWindow import MainWindow
+from mainwindow import MainWindow
+import sys
+from PyQt6.QtWidgets import QApplication
 
 
-if __name__=='__main__':
-    root = MainWindow('Base')
-    root.geometry('800x500')
-    root.mainloop()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    root = MainWindow()
+    app.exec()
