@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class BaseModelModify(BaseModel):
-    id: Optional[int] = None
+    id: Optional[int] = 1
 
 
 class Ticket(BaseModelModify):

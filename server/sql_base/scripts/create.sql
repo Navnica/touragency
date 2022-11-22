@@ -22,9 +22,7 @@ create table User(
 	id integer primary key autoincrement,
 	name varchar(256) not null,
 	surname varchar(256) not null,
-	phone varchar(12) not null unique,
-	login varchar(12) not null unique,
-	password varchar(12) not null unique
+	phone varchar(12) not null unique
 );
 
 create table Ticket(
@@ -51,7 +49,7 @@ create table Personal(
 create table UserIn(
     id integer primary key autoincrement,
     login varchar(16) not null,
-    password varchar(16) no null,
-    userId integer not null,
+    password varchar(16) not null,
+    userId integer not null unique,
     foreign key (userId) references User(id)
 );
