@@ -3,6 +3,7 @@ drop table if exists Country;
 drop table if exists User;
 drop table if exists Ticket;
 drop table if exists Personal;
+drop table if exists UserIn;
 
 create table Country(
 	id integer primary key autoincrement,
@@ -44,4 +45,13 @@ create table Personal(
 	power_level integer not null,
 	login varchar(12) not null unique,
 	password varchar(12) not null unique
+);
+
+
+create table UserIn(
+    id integer primary key autoincrement,
+    login varchar(16) not null,
+    password varchar(16) no null,
+    userId integer not null,
+    foreign key (userId) references User(id)
 );

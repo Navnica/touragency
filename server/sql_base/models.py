@@ -31,3 +31,9 @@ class Country(BaseModelModify):
 
 class Personal(User):
     power_level: int = 1
+
+
+class UserIn(BaseModelModify):
+    login: str
+    password: str
+    user_id: int

@@ -1,6 +1,3 @@
-import pydentic.exceptions
-import typing
-
 import fastapi
 from resolves import user
 from sql_base.models import User
