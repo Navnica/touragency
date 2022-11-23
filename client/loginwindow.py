@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtCore import Qt
+import api.resolvers
 
 
 class LoginWindow(QDialog):
@@ -57,4 +58,4 @@ class LoginWindow(QDialog):
         self.login()
 
     def login(self) -> None:
-        print('login')
+        api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
