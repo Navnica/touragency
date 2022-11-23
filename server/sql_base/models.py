@@ -36,4 +36,4 @@ class Personal(User):
 class UserIn(BaseModelModify):
     login: str
     password: str
-    user_id: int
+    user_id: Optional[int]

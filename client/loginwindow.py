@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QErrorMessage, QMessageBox
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtCore import Qt
 import api.resolvers
@@ -58,4 +58,17 @@ class LoginWindow(QDialog):
         self.login()
 
     def login(self) -> None:
-        api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
+        answer = api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
+
+        if not answer:
+            successful = QMessageBox(self)
+            successful.setText("Incorrect login or password")
+            successful.setStandardButtons(QMessageBox.StandardButton.Ok)
+            successful.setIcon(QMessageBox.Icon.Critical)
+        else:
+            successful = QMessageBox(self)
+            successful.setText("Successful login")
+            successful.setStandardButtons(QMessageBox.StandardButton.Ok)
+            successful.setIcon(QMessageBox.Icon.Information)
+
+        successful.show()
