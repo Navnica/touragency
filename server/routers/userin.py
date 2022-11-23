@@ -2,7 +2,7 @@ import fastapi
 from sql_base.models import UserIn
 from resolves import userin
 
-router = fastapi.APIRouter(prefix='/userin', tags=['UserIn'], include_in_schema=False)
+router = fastapi.APIRouter(prefix='/userin', tags=['UserIn'], include_in_schema=True)
 
 
 @router.post('/login')
