@@ -60,15 +60,9 @@ class LoginWindow(QDialog):
     def login(self) -> None:
         answer = api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
 
-        if not answer:
-            successful = QMessageBox(self)
-            successful.setText("Incorrect login or password")
-            successful.setStandardButtons(QMessageBox.StandardButton.Ok)
-            successful.setIcon(QMessageBox.Icon.Critical)
-        else:
-            successful = QMessageBox(self)
-            successful.setText("Successful login")
-            successful.setStandardButtons(QMessageBox.StandardButton.Ok)
-            successful.setIcon(QMessageBox.Icon.Information)
-
-        successful.show()
+        messagebox = QMessageBox(self)
+        messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        messagebox.setWindowTitle("Error" if not answer else "Information")
+        messagebox.setText("Incorrect login or password" if not answer else "Successful login")
+        messagebox.setIcon(QMessageBox.Icon.Critical if not answer else QMessageBox.Icon.Information)
+        messagebox.show()
