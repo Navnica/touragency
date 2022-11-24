@@ -1,8 +1,8 @@
 import pydentic.exceptions
 import typing
 import fastapi
-from resolves import ticket
-from sql_base.models import Ticket
+from server.resolves import ticket
+from server.sql_base.models import Ticket
 
 router = fastapi.APIRouter(prefix='/ticket', tags=['Ticket'])
 

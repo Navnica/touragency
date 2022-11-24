@@ -1,5 +1,5 @@
 from .user import dbmanager
-from sql_base.models import UserIn
+from server.sql_base.models import UserIn
 
 
 def login(userIn: UserIn) -> int | None:

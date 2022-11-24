@@ -1,6 +1,6 @@
 import fastapi
-from resolves import user
-from sql_base.models import User
+from server.resolves import user
+from server.sql_base.models import User
 
 router = fastapi.APIRouter(prefix='/user', tags=['User'])
 

@@ -1,4 +1,4 @@
-from sql_base.models import Ticket
+from server.sql_base.models import Ticket
 from .user import dbmanager
 
 

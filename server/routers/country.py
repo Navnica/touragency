@@ -1,6 +1,6 @@
 import fastapi
-from resolves import country
-from sql_base.models import Country
+from server.resolves import country
+from server.sql_base.models import Country
 
 router = fastapi.APIRouter(prefix='/country', tags=['Country'])
 

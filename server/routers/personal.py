@@ -1,6 +1,6 @@
 import fastapi
-from sql_base.models import Personal
-from resolves import personal
+from server.sql_base.models import Personal
+from server.resolves import personal
 
 router = fastapi.APIRouter(prefix='/personal', tags=['Personal'])
 

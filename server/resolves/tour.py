@@ -1,4 +1,4 @@
-from sql_base.models import Tour
+from server.sql_base.models import Tour
 from .user import dbmanager
 
 

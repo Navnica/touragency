@@ -1,7 +1,7 @@
-from sql_base.dbmanager import DbManager
-from sql_base.models import User
+from server.sql_base.dbmanager import DbManager
+from server.sql_base.models import User
 
-dbmanager = DbManager(db_path='sql_base/touragency.db')
+dbmanager = DbManager(db_path='server/sql_base/touragency.db')
 
 
 def get(user_id: int) -> User | None:

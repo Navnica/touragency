@@ -1,4 +1,4 @@
-from sql_base.models import Country
+from server.sql_base.models import Country
 from .user import dbmanager
 
 

@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget
 from PyQt6.QtCore import Qt
-from loginwindow import LoginWindow
+from client.loginwindow import LoginWindow
 
 
 class MainWindow(QMainWindow):

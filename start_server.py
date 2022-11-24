@@ -1,12 +1,13 @@
 import uvicorn
 import fastapi
 from fastapi.responses import RedirectResponse
-from router import routers
-from sql_base.dbmanager import DbManager
+from server.router import routers
+from server.sql_base.dbmanager import DbManager
 
 app = fastapi.FastAPI(title="taAPI",
                       version='0.1 Alpha',
                       description="taAPI - TourAgency Application Programming Interface")
+
 [app.include_router(router) for router in routers]
 
 
@@ -16,5 +17,5 @@ def index() -> RedirectResponse:
 
 
 if __name__ == '__main__':
-    DbManager('sql_base/touragency.db').create_db('sql_base/scripts/create.sql')
-    uvicorn.run("server:app", reload=True, host='localhost')
+    DbManager('server/sql_base/touragency.db').create_db('server/sql_base/scripts/create.sql')
+    uvicorn.run("start_server:app", reload=True, host='localhost')
