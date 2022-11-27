@@ -1,4 +1,5 @@
 import requests
+from server.sql_base.models import User, UserIn
 
 
 def login(user_login: str, user_password: str):
@@ -7,3 +8,7 @@ def login(user_login: str, user_password: str):
         data=f'{{ "login": "{user_login}", "password": "{user_password}" }}').json()
 
     return answer
+
+
+def register(user: User, user_in: UserIn):
+    pass
