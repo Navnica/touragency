@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxL
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtCore import Qt
 import client.api.resolvers
-from server.sql_base.models import User, UserIn
+from server.sql_base.models import User
 
 
 class RegisterWindow(QDialog):
@@ -24,7 +24,6 @@ class RegisterWindow(QDialog):
         self.label_name = QLabel()
         self.label_surname = QLabel()
         self.label_phone = QLabel()
-        self.label_login = QLabel()
         self.label_password = QLabel()
         self.label_confirm = QLabel()
 
@@ -33,7 +32,6 @@ class RegisterWindow(QDialog):
         self.line_edit_name = QLineEdit()
         self.line_edit_surname = QLineEdit()
         self.line_edit_phone = QLineEdit()
-        self.line_edit_login = QLineEdit()
         self.line_edit_password = QLineEdit()
         self.line_edit_confirm = QLineEdit()
 
@@ -49,7 +47,6 @@ class RegisterWindow(QDialog):
         self.label_v_layout.addWidget(self.label_surname)
         self.label_v_layout.addWidget(self.label_phone)
         self.label_v_layout.addSpacerItem(self.spacer)
-        self.label_v_layout.addWidget(self.label_login)
         self.label_v_layout.addWidget(self.label_password)
         self.label_v_layout.addWidget(self.label_confirm)
 
@@ -57,7 +54,6 @@ class RegisterWindow(QDialog):
         self.line_edit_v_layout.addWidget(self.line_edit_surname)
         self.line_edit_v_layout.addWidget(self.line_edit_phone)
         self.line_edit_v_layout.addSpacerItem(self.spacer)
-        self.line_edit_v_layout.addWidget(self.line_edit_login)
         self.line_edit_v_layout.addWidget(self.line_edit_password)
         self.line_edit_v_layout.addWidget(self.line_edit_confirm)
 
@@ -66,7 +62,6 @@ class RegisterWindow(QDialog):
         self.label_name.setText('Name')
         self.label_surname.setText('Surname')
         self.label_phone.setText('Phone')
-        self.label_login.setText('Login')
         self.label_password.setText('Password')
         self.label_confirm.setText('Confirm')
         self.register_button.setText('Register')
@@ -96,7 +91,7 @@ class RegisterWindow(QDialog):
             self.show_error(error_text="Incorrect confirm password")
             return False
 
-        for x in (self.line_edit_password, self.line_edit_login, self.line_edit_surname, self.line_edit_phone, self.line_edit_name, self.line_edit_confirm):
+        for x in (self.line_edit_password, self.line_edit_surname, self.line_edit_phone, self.line_edit_name, self.line_edit_confirm):
             if x.text() == "":
                 self.show_error(error_text="One or more fields are empty")
                 return False
@@ -110,17 +105,16 @@ class RegisterWindow(QDialog):
         user = User(
             name=self.line_edit_name.text(),
             surname=self.line_edit_surname.text(),
-            phone=self.line_edit_phone.text()
-        )
-
-        user_in = UserIn(
-            login=self.line_edit_login.text(),
+            phone=self.line_edit_phone.text(),
             password=self.line_edit_password.text()
         )
 
-        answer = client.api.resolvers.register(user, user_in)
+        answer = client.api.resolvers.register(user)
 
         if 'error' in answer:
             if answer['error'] == 'request contains unique error':
-                self.show_error(error_text='Phone is not unique')
-                return
+                return self.show_error(error_text='Phone is not unique')
+
+        self.close()
+
+    

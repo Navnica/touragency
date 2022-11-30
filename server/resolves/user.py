@@ -38,8 +38,8 @@ def remove(user_id: int) -> None:
 
 def create(new_user: User) -> int | dict:
     res = dbmanager.execute_query(
-        query="insert into User (name, surname, phone) values(?,?,?) returning id",
-        args=(new_user.name, new_user.surname, new_user.phone))
+        query="insert into User (name, surname, phone, password) values(?,?,?,?) returning id",
+        args=(new_user.name, new_user.surname, new_user.phone, new_user.password))
 
     if type(res) != dict:
         res = get(res[0])
@@ -53,5 +53,11 @@ def update(user_id: int, new_data: User) -> None:
         args=(new_data.name, new_data.surname, new_data.phone, user_id))
 
 
-def login(user: User) -> User:
-    pass
+def login(user_phone: str, user_password: str) -> int | None:
+    res = dbmanager.execute_query(
+        query='select id from User where phone=(?) and password=(?) ',
+        args=(user_phone, user_password)
+    )
+
+    return get(res[0]) if res else None
+

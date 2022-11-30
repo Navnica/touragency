@@ -1,6 +1,6 @@
 import fastapi
 from server.resolves import user
-from server.sql_base.models import User
+from server.sql_base.models import User, UserAuth
 
 router = fastapi.APIRouter(prefix='/user', tags=['User'])
 
@@ -28,3 +28,9 @@ def create(new_user: User) -> User | dict:
 @router.put("/update/{user_id}", response_model=None)
 def update(user_id: int, new_data: User):
     return user.update(user_id=user_id, new_data=new_data)
+
+
+@router.post('/login', response_model=User | None)
+def login(user_auth: UserAuth):
+    return user.login(user_auth.phone, user_auth.password)
+

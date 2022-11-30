@@ -17,6 +17,7 @@ class User(BaseModelModify):
     name: str
     surname: str
     phone: str
+    password: Optional[str]
 
 
 class Tour(BaseModelModify):
@@ -33,7 +34,7 @@ class Personal(User):
     power_level: int = 1
 
 
-class UserIn(BaseModelModify):
-    login: str
+class UserAuth(BaseModel):
+    phone: str
     password: str
-    user_id: Optional[int]
+
