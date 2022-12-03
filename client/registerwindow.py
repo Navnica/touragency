@@ -78,22 +78,14 @@ class RegisterWindow(QDialog):
     def on_register_button_clicked(self) -> None:
         self.register()
 
-    def show_error(self, error_text: str, title: str = "Error") -> None:
-        messagebox = QMessageBox(self)
-        messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
-        messagebox.setWindowTitle(title)
-        messagebox.setText(error_text)
-        messagebox.setIcon(QMessageBox.Icon.Critical)
-        messagebox.show()
-
     def data_is_valid(self) -> bool:
         if self.line_edit_password.text() != self.line_edit_confirm.text():
-            self.show_error(error_text="Incorrect confirm password")
+            self.parent().show_message(text="Incorrect confirm password", error=True, parent=self)
             return False
 
         for x in (self.line_edit_password, self.line_edit_surname, self.line_edit_phone, self.line_edit_name, self.line_edit_confirm):
             if x.text() == "":
-                self.show_error(error_text="One or more fields are empty")
+                self.parent().show_message(text="One or more fields are empty", error=True, parent=self)
                 return False
 
         return True
@@ -111,10 +103,17 @@ class RegisterWindow(QDialog):
 
         answer = client.api.resolvers.register(user)
 
-        if 'error' in answer:
-            if answer['error'] == 'request contains unique error':
-                return self.show_error(error_text='Phone is not unique')
+        match answer:
+            case {'error': error}:
+                match error:
+                    case 'request contains unique error':
+                        return self.parent().show_message(text='Phone is not unique', error=True, parent=self)
 
+                    case 'server not available':
+                        return self.parent().show_message(text='Server connection error', error=True, parent=self)
+
+            case {'id': _}:
+                self.parent().show_message(text='Successful registration', parent=self)
+
+        self.parent().open_login_dialog()
         self.close()
-
-    

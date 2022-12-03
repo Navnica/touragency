@@ -60,9 +60,14 @@ class LoginWindow(QDialog):
     def login(self) -> None:
         answer = client.api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
 
-        messagebox = QMessageBox(self)
-        messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
-        messagebox.setWindowTitle("Error" if not answer else "Information")
-        messagebox.setText("Incorrect login or password" if not answer else "Successful login")
-        messagebox.setIcon(QMessageBox.Icon.Critical if not answer else QMessageBox.Icon.Information)
-        messagebox.show()
+        match answer:
+            case {'error': error}:
+                match error:
+                    case 'incorrect login or password':
+                        self.parent().show_message(text='Incorrect login or password', error=True, parent=self)
+
+                    case 'server not available':
+                        self.parent().show_message(text='Server connection error', error=True, parent=self)
+
+            case {'id': _}:
+                self.parent().show_message(text='Successful login', parent=self)

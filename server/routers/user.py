@@ -26,11 +26,11 @@ def create(new_user: User) -> User | dict:
 
 
 @router.put("/update/{user_id}", response_model=None)
-def update(user_id: int, new_data: User):
+def update(user_id: int, new_data: User) -> None:
     return user.update(user_id=user_id, new_data=new_data)
 
 
-@router.post('/login', response_model=User | None)
-def login(user_auth: UserAuth):
+@router.post('/login', response_model=User | dict)
+def login(user_auth: UserAuth) -> User | dict:
     return user.login(user_auth.phone, user_auth.password)
 

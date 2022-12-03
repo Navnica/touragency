@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QPushButton, QVBoxLayout, QWidget, QMessageBox
 from PyQt6.QtCore import Qt
 from client.loginwindow import LoginWindow
 from client.registerwindow import RegisterWindow
@@ -45,6 +45,14 @@ class MainWindow(QMainWindow):
         self.login_button.clicked.connect(self.on_login_button_clicked)
         self.register_button.clicked.connect(self.on_register_button_clicked)
         self.exit_button.clicked.connect(self.on_exit_button_clicked)
+
+    def show_message(self, text: str, error: bool = False, parent=None) -> None:
+        messagebox = QMessageBox(self if not parent else parent)
+        messagebox.setStandardButtons(QMessageBox.StandardButton.Ok)
+        messagebox.setWindowTitle("Error" if error else "Information")
+        messagebox.setText(text)
+        messagebox.setIcon(QMessageBox.Icon.Critical if error else QMessageBox.Icon.Information)
+        messagebox.show()
 
     def on_login_button_clicked(self) -> None:
         self.open_login_dialog()

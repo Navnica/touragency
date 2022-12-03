@@ -53,11 +53,11 @@ def update(user_id: int, new_data: User) -> None:
         args=(new_data.name, new_data.surname, new_data.phone, user_id))
 
 
-def login(user_phone: str, user_password: str) -> int | None:
+def login(user_phone: str, user_password: str) -> User | dict:
     res = dbmanager.execute_query(
         query='select id from User where phone=(?) and password=(?) ',
         args=(user_phone, user_password)
     )
 
-    return get(res[0]) if res else None
+    return get(res[0]) if res else {'error': 'incorrect login or password'}
 
