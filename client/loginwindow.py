@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QErrorMessage, QMessageBox
-from PyQt6.QtGui import QKeyEvent
-from PyQt6.QtCore import Qt
+from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QErrorMessage, QMessageBox
+from PySide6.QtGui import QKeyEvent
+from PySide6.QtCore import Qt
 import client.api.resolvers
 
 
