@@ -2,8 +2,6 @@ drop table if exists Tour;
 drop table if exists Country;
 drop table if exists User;
 drop table if exists Ticket;
-drop table if exists Personal;
-drop table if exists UserIn;
 
 create table Country(
 	id integer primary key autoincrement,
@@ -23,7 +21,8 @@ create table User(
 	name varchar(256) not null,
 	surname varchar(256) not null,
 	phone varchar(12) not null unique,
-	password varchar(16)
+	password varchar(16),
+	power_level integer not null default 1
 );
 
 create table Ticket(
@@ -34,14 +33,4 @@ create table Ticket(
 	userId integer not null,
 	foreign key (tourId) references Tour(id),
 	foreign key (userId) references User(id) 
-);
-
-create table Personal(
-	id integer primary key autoincrement,
-	name varchar(256) not null,
-	surname varchar(256) not null,
-	phone varchar(12) not null unique,
-	power_level integer not null,
-	login varchar(12) not null unique,
-	password varchar(12) not null unique
 );

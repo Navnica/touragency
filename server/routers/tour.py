@@ -15,9 +15,9 @@ def get_all() -> list[Tour]:
     return tour.get_all()
 
 
-@router.get('/remove/{tour_id}', response_model=None)
+@router.delete('/delete/{tour_id}', response_model=None)
 def remove(tour_id: int) -> None:
-    return tour.remove(tour_id)
+    return tour.delete(tour_id)
 
 
 @router.post('/create/', response_model=Tour | dict)

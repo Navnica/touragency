@@ -25,6 +25,3 @@ insert into Ticket (tourId, date_start, date_end, userId) values (3, "1939-1-01"
 insert into Ticket (tourId, date_start, date_end, userId) values (4, "2003-11-08", "2003-11-09", 6);
 insert into Ticket (tourId, date_start, date_end, userId) values (5, "2003-11-08", "2003-11-09", 5);
 insert into Ticket (tourId, date_start, date_end, userId) values (6, "2003-11-08", "2003-11-09", 2);
-
-insert into Personal (name, surname, number, power_level) values ('Geralt', 'From-Rivia', '89965116103', 1);
-insert into Personal (name, surname, number, power_level) values ('Tsar', 'Russian', '89044198233', 2); 

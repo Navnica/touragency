@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QMessageBox
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt
-import client.api.resolvers
+from client.api.session import Session
 from server.sql_base.models import User
 
 
@@ -14,7 +14,7 @@ class RegisterWindow(QDialog):
 
     def __initUi(self) -> None:
         self.setWindowTitle('Register')
-        self.setFixedSize(370, 225)
+        self.setMinimumSize(370, 225)
 
         self.main_v_layout = QVBoxLayout()
         self.label_lineedit_h_layout = QHBoxLayout()
@@ -101,19 +101,22 @@ class RegisterWindow(QDialog):
             password=self.line_edit_password.text()
         )
 
-        answer = client.api.resolvers.register(user)
+        session = Session()
+        session.register(user)
 
-        match answer:
-            case {'error': error}:
-                match error:
-                    case 'request contains unique error':
-                        return self.parent().show_message(text='Phone is not unique', error=True, parent=self)
+        if session.error:
+            return self.parent().show_message(
+                text=session.error,
+                error=True,
+                parent=self
+            )
 
-                    case 'server not available':
-                        return self.parent().show_message(text='Server connection error', error=True, parent=self)
-
-            case {'id': _}:
-                self.parent().show_message(text='Successful registration', parent=self)
+        if session.auth:
+            return self.parent().show_message(
+                text='Successful register',
+                error=False,
+                parent=self
+            )
 
         self.parent().open_login_dialog()
         self.close()

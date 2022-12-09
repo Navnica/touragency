@@ -1,7 +1,8 @@
+import settings
 from server.sql_base.dbmanager import DbManager
 from server.sql_base.models import User
 
-dbmanager = DbManager(db_path='server/sql_base/touragency.db')
+dbmanager = DbManager(db_path=settings.DATABASE_PATH)
 
 
 def get(user_id: int) -> User | None:
@@ -32,7 +33,7 @@ def get_all() -> list[User] | dict:
     return res
 
 
-def remove(user_id: int) -> None:
+def delete(user_id: int) -> None:
     return dbmanager.execute_query('delete from User where id=(?)', args=(user_id,))
 
 

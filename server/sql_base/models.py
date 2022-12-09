@@ -14,10 +14,11 @@ class Ticket(BaseModelModify):
 
 
 class User(BaseModelModify):
-    name: str
-    surname: str
-    phone: str
+    name: str | None
+    surname: str | None
+    phone: str | None
     password: Optional[str]
+    power_level: int = 1
 
 
 class Tour(BaseModelModify):

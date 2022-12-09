@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QErrorMessage, QMessageBox
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt
-import client.api.resolvers
+from client.api.session import Session
 
 
 class LoginWindow(QDialog):
@@ -13,7 +13,7 @@ class LoginWindow(QDialog):
 
     def __initUi(self) -> None:
         self.setWindowTitle('Login')
-        self.setFixedSize(200, 100)
+        self.setMinimumSize(200, 100)
 
         self.main_v_layout = QVBoxLayout()
         self.label_lineedit_h_layout = QHBoxLayout()
@@ -58,16 +58,15 @@ class LoginWindow(QDialog):
         self.login()
 
     def login(self) -> None:
-        answer = client.api.resolvers.login(self.line_edit_login.text(), self.line_edit_password.text())
+        session = Session()
+        session.login(self.line_edit_login.text(), self.line_edit_password.text())
 
-        match answer:
-            case {'error': error}:
-                match error:
-                    case 'incorrect login or password':
-                        self.parent().show_message(text='Incorrect login or password', error=True, parent=self)
+        if session.error:
+            return self.parent().show_message(
+                text=session.error,
+                error=True,
+                parent=self
+            )
 
-                    case 'server not available':
-                        self.parent().show_message(text='Server connection error', error=True, parent=self)
-
-            case {'id': _}:
-                self.parent().show_message(text='Successful login', parent=self)
+        self.parent().set_session(session)
+        self.close()

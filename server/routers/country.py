@@ -15,9 +15,9 @@ def get_all() -> list[Country] | dict:
     return country.get_all()
 
 
-@router.get('/remove/{country_id}', response_model=None)
+@router.delete('/delete/{country_id}', response_model=None)
 def remove(country_id: int) -> None:
-    return country.remove(country_id)
+    return country.delete(country_id)
 
 
 @router.post('/create/', response_model=Country | dict)

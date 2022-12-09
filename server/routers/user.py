@@ -15,9 +15,9 @@ def get_all() -> list[User] | dict:
     return user.get_all()
 
 
-@router.get('/remove/{user_id}', response_model=None)
-def remove(user_id: int) -> None:
-    return user.remove(user_id)
+@router.delete('/delete/{user_id}', response_model=None)
+def delete(user_id: int) -> None:
+    return user.delete(user_id)
 
 
 @router.post('/create/', response_model=User | dict)

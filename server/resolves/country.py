@@ -1,5 +1,5 @@
 from server.sql_base.models import Country
-from .user import dbmanager
+from server.resolves.user import dbmanager
 
 
 def get(country_id: int) -> Country | None:
@@ -30,7 +30,7 @@ def get_all() -> list[Country] | dict:
     return res
 
 
-def remove(country_id: int) -> None:
+def delete(country_id: int) -> None:
     return dbmanager.execute_query(
         query='delete from Country where id=(?)',
         args=(country_id,))

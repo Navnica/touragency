@@ -1,4 +1,6 @@
 .idea
 __pycache__
-server/sql_base/touragency.db
 venv
+.base
+*.db
+.DS_Store

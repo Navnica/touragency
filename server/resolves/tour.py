@@ -1,5 +1,5 @@
 from server.sql_base.models import Tour
-from .user import dbmanager
+from server.resolves.user import dbmanager
 
 
 def get(tour_id: int) -> Tour | None:
@@ -34,7 +34,7 @@ def get_all() -> list[Tour] | dict:
     return res
 
 
-def remove(tour_id: int) -> None:
+def delete(tour_id: int) -> None:
     return dbmanager.execute_query(
         query='delete from Tour where id=(?)',
         args=(tour_id,))

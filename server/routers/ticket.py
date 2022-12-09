@@ -17,7 +17,7 @@ def get_all() -> list[Ticket] | dict:
     return ticket.get_all()
 
 
-@router.get('/remove/{ticket_id}', response_model=None)
+@router.delete('/delete/{ticket_id}', response_model=None)
 def remove(ticket_id: int) -> None:
     return ticket.remove(ticket_id)
 
