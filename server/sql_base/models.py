@@ -14,9 +14,9 @@ class Ticket(BaseModelModify):
 
 
 class User(BaseModelModify):
-    name: str | None
-    surname: str | None
-    phone: str | None
+    name: str
+    surname: str
+    phone: str
     password: Optional[str]
     power_level: int = 1
 

@@ -112,7 +112,7 @@ class RegisterWindow(QDialog):
             )
 
         if session.auth:
-            return self.parent().show_message(
+            self.parent().show_message(
                 text='Successful register',
                 error=False,
                 parent=self

@@ -3,6 +3,7 @@ from client.login_form import LoginWindow
 from client.register_form import RegisterWindow
 from client.tools import get_pixmap_path
 from client.api.session import Session
+from server.sql_base.models import User
 
 session: Session = Session()
 
@@ -20,6 +21,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.page_list = PageListMenu()
         self.tour_list = TourList()
         self.authorization_menu = AuthorizationMenu()
+        self.user_profile = UserProfile()
 
     def __setupUi(self) -> None:
         self.resize(930, 615)
@@ -31,8 +33,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_h_layout.addWidget(self.page_list)
         self.main_h_layout.addWidget(self.tour_list)
         self.main_h_layout.addWidget(self.authorization_menu)
+        self.main_h_layout.addWidget(self.user_profile)
 
-        # self.page_list.hide()
+        self.user_profile.hide()
 
     def show_message(self, text: str, error: bool = False, parent=None) -> None:
         messagebox = QtWidgets.QMessageBox(self if not parent else parent)
@@ -49,10 +52,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def authorization(self):
         self.authorization_menu.hide()
+        self.user_profile.show()
         self.page_list.enable_elements_by_power_level()
+        self.user_profile.fill_line_edits()
 
     def exit(self) -> None:
         self.close()
+
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.exit()
 
 
 class PageListMenu(QtWidgets.QWidget):
@@ -122,7 +130,7 @@ class PageListMenu(QtWidgets.QWidget):
             self.container_layout.setContentsMargins(5, 5, 5, 5)
             self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
 
-            self.title.setStyleSheet('color: white')
+            self.title.setStyleSheet('color: black')
 
             self.container_layout.addWidget(self.icon)
             self.container_layout.addWidget(self.title)
@@ -140,9 +148,11 @@ class PageListMenu(QtWidgets.QWidget):
 
         def on_mouse_enter(self):
             self.setStyleSheet('QFrame{background-color: darkgray; border-radius: 15px}')
+            self.title.setStyleSheet('color: white')
 
         def on_mouse_leave(self):
             self.setStyleSheet('QFrame{background-color: none; border-radius: 15px}')
+            self.title.setStyleSheet('color: black')
 
         def on_mouse_clicked(self):
             if self.connection_def:
@@ -257,10 +267,17 @@ class AuthorizationMenu(QtWidgets.QWidget):
         self.open_register_dialog()
 
     def open_login_dialog(self):
-        LoginWindow(self.parent().parent())
+        LoginWindow(self.parent().parent()) # Надеюсь увидеть этот комментарий и всё-таки отрефакторить код
 
     def open_register_dialog(self):
-        RegisterWindow(self.parent().parent())
+        RegisterWindow(self)
+
+    def show_message(self, text: str, error: bool = False, parent=None) -> None:
+        self.parent().parent().show_message(
+            text=text,
+            error=error,
+            parent=parent
+        )
 
 
 class UserProfile(QtWidgets.QWidget):
@@ -270,9 +287,14 @@ class UserProfile(QtWidgets.QWidget):
         self.__setupUi()
 
     def __initUi(self) -> None:
-        self.main_h_layout = QtWidgets.QHBoxLayout()
-        self.label_layout = QtWidgets.QVBoxLayout()
-        self.line_edit_layout = QtWidgets.QVBoxLayout()
+        self.main_v_layout = QtWidgets.QVBoxLayout()
+
+        self.name_layout = QtWidgets.QHBoxLayout()
+        self.surname_layout = QtWidgets.QHBoxLayout()
+        self.phone_layout = QtWidgets.QHBoxLayout()
+        self.password_layout = QtWidgets.QHBoxLayout()
+        self.confirm_layout = QtWidgets.QHBoxLayout()
+        self.button_layout = QtWidgets.QHBoxLayout()
 
         self.name_label = QtWidgets.QLabel()
         self.surname_label = QtWidgets.QLabel()
@@ -287,8 +309,118 @@ class UserProfile(QtWidgets.QWidget):
         self.password_line_edit = QtWidgets.QLineEdit()
         self.confirm_password_line_edit = QtWidgets.QLineEdit()
 
+        self.edit_button = QtWidgets.QPushButton()
+        self.allow_button = QtWidgets.QPushButton()
+
+        self.spacer = QtWidgets.QSpacerItem(0, 10)
+
     def __setupUi(self) -> None:
-        self.setLayout(self.main_h_layout)
-        self.setMaximumWidth(120)
-        self.main_h_layout.addLayout(self.label_layout)
-        self.main_h_layout.addLayout(self.line_edit_layout)
+        self.setLayout(self.main_v_layout)
+        self.main_v_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.setMaximumWidth(250)
+        self.main_v_layout.addLayout(self.name_layout)
+        self.main_v_layout.addLayout(self.surname_layout)
+        self.main_v_layout.addLayout(self.phone_layout)
+        self.main_v_layout.addSpacerItem(self.spacer)
+        self.main_v_layout.addLayout(self.password_layout)
+        self.main_v_layout.addLayout(self.confirm_layout)
+        self.main_v_layout.addWidget(self.power_level_label)
+        self.main_v_layout.addSpacerItem(self.spacer)
+        self.main_v_layout.addLayout(self.button_layout)
+
+        self.name_layout.addWidget(self.name_label)
+        self.surname_layout.addWidget(self.surname_label)
+        self.phone_layout.addWidget(self.phone_label)
+        self.password_layout.addWidget(self.password_label)
+        self.confirm_layout.addWidget(self.confirm_password_label)
+
+        self.name_layout.addWidget(self.name_line_edit)
+        self.surname_layout.addWidget(self.surname_line_edit)
+        self.phone_layout.addWidget(self.phone_line_edit)
+        self.password_layout.addWidget(self.password_line_edit)
+        self.confirm_layout.addWidget(self.confirm_password_line_edit)
+
+        self.button_layout.addWidget(self.edit_button)
+        self.button_layout.addWidget(self.allow_button)
+
+        self.edit_button.setText('Edit')
+        self.allow_button.setText('Allow')
+
+        self.name_label.setText('Name:')
+        self.surname_label.setText('Surname:')
+        self.phone_label.setText('Phone:')
+        self.password_label.setText('Password:')
+        self.confirm_password_label.setText('Confirm:')
+        self.power_level_label.setText('Power level: 0')
+
+        self.name_line_edit.setFixedWidth(150)
+        self.surname_line_edit.setFixedWidth(150)
+        self.phone_line_edit.setFixedWidth(150)
+        self.password_line_edit.setFixedWidth(150)
+        self.confirm_password_line_edit.setFixedWidth(150)
+
+        self.password_line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        self.confirm_password_line_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+
+        self.set_line_edit_enable(False)
+
+        self.allow_button.setEnabled(False)
+
+        self.edit_button.clicked.connect(self.on_edit_click)
+        self.allow_button.clicked.connect(self.on_allow_click)
+
+    def set_line_edit_enable(self, enabled: bool) -> None:
+        self.name_line_edit.setEnabled(enabled)
+        self.surname_line_edit.setEnabled(enabled)
+        self.phone_line_edit.setEnabled(enabled)
+        self.password_line_edit.setEnabled(enabled)
+        self.confirm_password_line_edit.setEnabled(enabled)
+
+    def fill_line_edits(self) -> None:
+        global session
+
+        self.name_line_edit.setText(session.user.name)
+        self.surname_line_edit.setText(session.user.surname)
+        self.phone_line_edit.setText(session.user.phone)
+        self.password_line_edit.setText(session.user.password)
+        self.power_level_label.setText(f'Power level: {str(session.user.power_level)}')
+
+    def on_edit_click(self) -> None:
+        self.edit_button.setEnabled(False)
+        self.allow_button.setEnabled(True)
+
+        self.set_line_edit_enable(True)
+
+    def validate_password(self) -> bool:
+        global session
+        return self.confirm_password_line_edit.text() == session.user.password
+
+    def on_allow_click(self) -> None:
+        global session
+
+        if not self.validate_password():
+            return self.parent().parent().show_message(
+                text='Incorrect confirm password',
+                error=True,
+                parent=self
+            )
+
+        user = User(
+            name=self.name_line_edit.text(),
+            surname=self.surname_line_edit.text(),
+            phone=self.phone_line_edit.text(),
+            password=self.password_line_edit.text(),
+            power_level=session.user.power_level
+        )
+
+        session.update(user)
+
+        if session.error:
+            return self.parent().parent().show_message(
+                text=session.error,
+                error=True,
+                parent=self
+            )
+
+        self.allow_button.setEnabled(False)
+        self.edit_button.setEnabled(True)

@@ -59,6 +59,7 @@ class LoginWindow(QDialog):
 
     def login(self) -> None:
         session = Session()
+
         session.login(self.line_edit_login.text(), self.line_edit_password.text())
 
         if session.error:

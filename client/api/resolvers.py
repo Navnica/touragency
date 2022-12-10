@@ -42,3 +42,9 @@ def register(user: User) -> dict | int:
 
     return answer
 
+
+def update(user: User) -> None | dict:
+    conn_a = server_available()
+
+    if type(conn_a) is dict:
+        return conn_a

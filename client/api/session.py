@@ -5,10 +5,11 @@ from server.sql_base.models import User
 class Session:
     auth: bool = False
     user: User = User(
-        name=None,
-        surname=None,
-        phone=None,
-        pasword=None,
+        id=0,
+        name='',
+        surname='',
+        phone='',
+        pasword='',
         power_level=0
     )
     error = None
@@ -31,7 +32,7 @@ class Session:
                 )
                 self.auth = True
 
-    def register(self, user: User):
+    def register(self, user: User) -> None:
         answer: User | dict = client.api.resolvers.register(user)
 
         match answer:
@@ -40,3 +41,10 @@ class Session:
 
             case {'id': _}:
                 self.auth = True
+
+    def update(self, user: User) -> None:
+        answer: User | dict = client.api.resolvers.update(user)
+
+        match answer:
+            case {'error': error}:
+                self.error = error
