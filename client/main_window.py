@@ -406,6 +406,7 @@ class UserProfile(QtWidgets.QWidget):
             )
 
         user = User(
+            id=session.user.id,
             name=self.name_line_edit.text(),
             surname=self.surname_line_edit.text(),
             phone=self.phone_line_edit.text(),
@@ -422,5 +423,6 @@ class UserProfile(QtWidgets.QWidget):
                 parent=self
             )
 
+        self.set_line_edit_enable(False)
         self.allow_button.setEnabled(False)
         self.edit_button.setEnabled(True)

@@ -48,3 +48,11 @@ def update(user: User) -> None | dict:
 
     if type(conn_a) is dict:
         return conn_a
+
+    data = f'{{"name": "{user.name}", "surname": "{user.surname}", "phone": "{user.phone}", "password": "{user.password}"}}'
+
+    answer = requests.put(
+        url=f'{server_url}/user/update/{user.id}',
+        data=data).json()
+
+    return answer
