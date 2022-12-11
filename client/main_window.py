@@ -3,7 +3,9 @@ from client.login_form import LoginWindow
 from client.register_form import RegisterWindow
 from client.tools import get_pixmap_path
 from client.api.session import Session
+import client.api.resolvers
 from server.sql_base.models import User
+from random import randint
 
 session: Session = Session()
 
@@ -15,12 +17,9 @@ def include_widgets_by_pl(element: dict[str, QtWidgets.QWidget]):
         if not issubclass(type(item), QtWidgets.QWidget):
             continue
 
-        print(item)
         if item.property('power_level') is not None:
-
             item.show() if session.user.power_level >= item.property('power_level') else item.hide()
 
-        print(item.__dict__)
         include_widgets_by_pl(item.__dict__)
 
 
@@ -36,6 +35,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_h_layout = QtWidgets.QHBoxLayout()
         self.page_list = PageListMenu()
         self.tour_list = TourList()
+        self.ticket_list = TicketList()
         self.authorization_menu = AuthorizationMenu()
         self.user_profile = UserProfile()
 
@@ -48,10 +48,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.main_h_layout.addWidget(self.page_list)
         self.main_h_layout.addWidget(self.tour_list)
+        self.main_h_layout.addWidget(self.ticket_list)
         self.main_h_layout.addWidget(self.authorization_menu)
         self.main_h_layout.addWidget(self.user_profile)
 
-        self.tour_list.add_tour('21', '24', '214')
+        self.ticket_list.hide()
+
+        self.page_list.switch_page(self.tour_list)
+
+        self.page_list.ticket_item.connect_function(lambda: self.page_list.switch_page(self.ticket_list))
+        self.page_list.tour_item.connect_function(lambda: self.page_list.switch_page(self.tour_list))
+
+        self.tour_list.load_tours()
 
         include_widgets_by_pl(self.__dict__)
 
@@ -79,8 +87,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         exit()
 
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        pass
+
 
 class PageListMenu(QtWidgets.QWidget):
+    opened_widget = None
+
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -88,14 +101,15 @@ class PageListMenu(QtWidgets.QWidget):
 
     def __initUi(self) -> None:
         self.main_v_layout = QtWidgets.QVBoxLayout()
-        self.tour_item = self.MenuItem()
-        self.ticket_item = self.MenuItem()
+        self.tour_item = MenuItem()
+        self.ticket_item = MenuItem()
 
     def __setupUi(self) -> None:
         self.setMaximumWidth(120)
         self.setLayout(self.main_v_layout)
         self.main_v_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.main_v_layout.setContentsMargins(5, 5, 5, 5)
+        self.opened_widget = self.tour_item
 
         self.tour_item.setup('tour.png', 'Tours')
         self.ticket_item.setup('ticket.png', 'Tickets')
@@ -109,74 +123,78 @@ class PageListMenu(QtWidgets.QWidget):
         self.tour_item.setProperty('power_level', 0)
         self.ticket_item.setProperty('power_level', 1)
 
-       # include_widgets_by_pl(self.__dict__)
+    def switch_page(self, page):
+        self.opened_widget.hide()
+        self.opened_widget = page
+        page.show()
 
-    class MenuItem(QtWidgets.QFrame):
-        connection_def = None
-        required_power_level = 0
 
-        def __init__(self) -> None:
-            super().__init__()
-            self.__initUi()
-            self.__setupUi()
+class MenuItem(QtWidgets.QFrame):
+    connection_def = None
+    required_power_level = 0
 
-        def __initUi(self) -> None:
-            self.main_h_layout = QtWidgets.QHBoxLayout()
-            self.container_widget = QtWidgets.QWidget()
-            self.container_layout = QtWidgets.QHBoxLayout()
-            self.icon = QtWidgets.QLabel()
-            self.title = QtWidgets.QLabel()
+    def __init__(self) -> None:
+        super().__init__()
+        self.__initUi()
+        self.__setupUi()
 
-        def __setupUi(self) -> None:
-            self.setLayout(self.main_h_layout)
-            self.main_h_layout.addWidget(self.container_widget)
-            self.container_widget.setLayout(self.container_layout)
-            self.main_h_layout.setContentsMargins(5, 5, 5, 5)
-            self.container_layout.setContentsMargins(5, 5, 5, 5)
-            self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
+    def __initUi(self) -> None:
+        self.main_h_layout = QtWidgets.QHBoxLayout()
+        self.container_widget = QtWidgets.QWidget()
+        self.container_layout = QtWidgets.QHBoxLayout()
+        self.icon = QtWidgets.QLabel()
+        self.title = QtWidgets.QLabel()
 
-            self.title.setStyleSheet('color: black')
+    def __setupUi(self) -> None:
+        self.setLayout(self.main_h_layout)
+        self.main_h_layout.addWidget(self.container_widget)
+        self.container_widget.setLayout(self.container_layout)
+        self.main_h_layout.setContentsMargins(5, 5, 5, 5)
+        self.container_layout.setContentsMargins(5, 5, 5, 5)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
 
-            self.container_layout.addWidget(self.icon)
-            self.container_layout.addWidget(self.title)
-            self.icon.setFixedSize(32, 32)
+        self.title.setStyleSheet('color: black')
 
-        def setup(self, icon_name: str, title: str):
-            self.set_icon(icon_name)
-            self.set_title(title)
+        self.container_layout.addWidget(self.icon)
+        self.container_layout.addWidget(self.title)
+        self.icon.setFixedSize(32, 32)
 
-        def set_icon(self, icon_name: str) -> None:
-            self.icon.setPixmap(QtGui.QPixmap(get_pixmap_path(icon_name)))
+    def setup(self, icon_name: str, title: str):
+        self.set_icon(icon_name)
+        self.set_title(title)
 
-        def set_title(self, title: str) -> None:
-            self.title.setText(title)
+    def set_icon(self, icon_name: str) -> None:
+        self.icon.setPixmap(QtGui.QPixmap(get_pixmap_path(icon_name)))
 
-        def on_mouse_enter(self):
-            self.setStyleSheet('QFrame{background-color: darkgray; border-radius: 15px}')
-            self.title.setStyleSheet('color: white')
+    def set_title(self, title: str) -> None:
+        self.title.setText(title)
 
-        def on_mouse_leave(self):
-            self.setStyleSheet('QFrame{background-color: none; border-radius: 15px}')
-            self.title.setStyleSheet('color: black')
+    def on_mouse_enter(self):
+        self.setStyleSheet('QFrame{background-color: darkgray; border-radius: 15px}')
+        self.title.setStyleSheet('color: white')
 
-        def on_mouse_clicked(self):
-            if self.connection_def:
-                self.connection_def()
+    def on_mouse_leave(self):
+        self.setStyleSheet('QFrame{background-color: none; border-radius: 15px}')
+        self.title.setStyleSheet('color: black')
 
-        def set_required_power_level(self, level: int):
-            self.required_power_level = level
+    def on_mouse_clicked(self):
+        if self.connection_def:
+            self.connection_def()
 
-        def connect_function(self, foo):
-            self.connection_def = foo
+    def set_required_power_level(self, level: int):
+        self.required_power_level = level
 
-        def enterEvent(self, event: QtGui.QEnterEvent) -> None:
-            self.on_mouse_enter()
+    def connect_function(self, foo):
+        self.connection_def = foo
 
-        def leaveEvent(self, event: QtCore.QEvent) -> None:
-            self.on_mouse_leave()
+    def enterEvent(self, event: QtGui.QEnterEvent) -> None:
+        self.on_mouse_enter()
 
-        def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
-            self.on_mouse_clicked()
+    def leaveEvent(self, event: QtCore.QEvent) -> None:
+        self.on_mouse_leave()
+
+    def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
+        self.on_mouse_clicked()
 
 
 class TourList(QtWidgets.QWidget):
@@ -199,10 +217,19 @@ class TourList(QtWidgets.QWidget):
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
-    def add_tour(self, country: str, hours: str, price: str) -> None:
+    def load_tours(self) -> None:
+        for tour in client.api.resolvers.get_all_tours():
+            country = client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
+            self.add_tour(
+                tour_id=str(tour['id']),
+                country=country,
+                hours=str(tour['hours']),
+                price=str(tour['price']))
+
+    def add_tour(self, tour_id: str, country: str, hours: str, price: str) -> None:
         new_tour = TourItem()
         new_tour.set_tour_info(country, hours, price)
-        new_tour.setParent(self)
+        self.scroll_widget.__dict__.update({tour_id: new_tour})
         self.scroll_layout.addWidget(new_tour)
 
 
@@ -241,12 +268,33 @@ class TourItem(QtWidgets.QWidget):
         self.edit_button.setFixedSize(24, 24)
         self.delete_button.setFixedSize(24, 24)
 
-       # include_widgets_by_pl(self.__dict__)
+    # include_widgets_by_pl(self.__dict__)
 
     def set_tour_info(self, country: str, hours: str, price: str) -> None:
         self.country.setText(country)
         self.hours.setText(hours)
         self.price.setText(price)
+
+
+class TicketList(QtWidgets.QWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.__initUi()
+        self.__setupUi()
+
+    def __initUi(self) -> None:
+        self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_widget = QtWidgets.QWidget()
+        self.scroll_layout = QtWidgets.QVBoxLayout()
+
+    def __setupUi(self) -> None:
+        self.setLayout(self.main_v_layout)
+        self.main_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_widget.setLayout(self.scroll_layout)
+        self.main_v_layout.addWidget(self.scroll_area)
+        self.scroll_area.setWidgetResizable(True)
 
 
 class AuthorizationMenu(QtWidgets.QWidget):
@@ -282,7 +330,7 @@ class AuthorizationMenu(QtWidgets.QWidget):
         self.open_register_dialog()
 
     def open_login_dialog(self):
-        LoginWindow(self.parent().parent()) # Надеюсь увидеть этот комментарий и всё-таки отрефакторить код
+        LoginWindow(self.parent().parent())  # Надеюсь увидеть этот комментарий и всё-таки отрефакторить код
 
     def open_register_dialog(self):
         RegisterWindow(self)
@@ -408,7 +456,7 @@ class UserProfile(QtWidgets.QWidget):
 
     def validate_password(self) -> bool:
         global session
-        return self.confirm_password_line_edit.text() == session.user.password
+        return self.confirm_password_line_edit.text() == self.password_line_edit.text()
 
     def on_allow_click(self) -> None:
         global session

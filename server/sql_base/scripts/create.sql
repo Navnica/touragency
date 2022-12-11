@@ -5,7 +5,7 @@ drop table if exists Ticket;
 
 create table Country(
 	id integer primary key autoincrement,
-	name varchar(256) not null
+	name varchar(256) not null unique
 );
 
 create table Tour(

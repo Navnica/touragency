@@ -43,7 +43,7 @@ class Session:
                 self.auth = True
 
     def update(self, user: User) -> None:
-        answer: User | dict = client.api.resolvers.update(user)
+        answer: User | dict = client.api.resolvers.update_user(user)
 
         match answer:
             case {'error': error}:

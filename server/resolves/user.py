@@ -12,7 +12,8 @@ def get(user_id: int) -> User | None:
         id=res[0],
         name=res[1],
         surname=res[2],
-        phone=res[3]
+        phone=res[3],
+        power_level=res[5]
     )
 
 
@@ -27,7 +28,8 @@ def get_all() -> list[User] | dict:
                 id=user[0],
                 name=user[1],
                 surname=user[2],
-                phone=user[3]
+                phone=user[3],
+                power_level=user[5]
             ))
 
     return res
@@ -50,8 +52,8 @@ def create(new_user: User) -> int | dict:
 
 def update(user_id: int, new_data: User) -> None:
     return dbmanager.execute_query(
-        query='update User set (name, surname, phone) = (?,?,?) where id=(?)',
-        args=(new_data.name, new_data.surname, new_data.phone, user_id))
+        query='update User set (name, surname, phone, password) = (?,?,?,?) where id=(?)',
+        args=(new_data.name, new_data.surname, new_data.phone, new_data.password, user_id))
 
 
 def login(user_phone: str, user_password: str) -> User | dict:
