@@ -8,6 +8,22 @@ from server.sql_base.models import User
 session: Session = Session()
 
 
+def include_widgets_by_pl(element: dict[str, QtWidgets.QWidget]):
+    global session
+
+    for key, item in element.items():
+        if not issubclass(type(item), QtWidgets.QWidget):
+            continue
+
+        print(item)
+        if item.property('power_level') is not None:
+
+            item.show() if session.user.power_level >= item.property('power_level') else item.hide()
+
+        print(item.__dict__)
+        include_widgets_by_pl(item.__dict__)
+
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
@@ -35,6 +51,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_h_layout.addWidget(self.authorization_menu)
         self.main_h_layout.addWidget(self.user_profile)
 
+        self.tour_list.add_tour('21', '24', '214')
+
+        include_widgets_by_pl(self.__dict__)
+
         self.user_profile.hide()
 
     def show_message(self, text: str, error: bool = False, parent=None) -> None:
@@ -53,19 +73,14 @@ class MainWindow(QtWidgets.QMainWindow):
     def authorization(self):
         self.authorization_menu.hide()
         self.user_profile.show()
-        self.page_list.enable_elements_by_power_level()
+        include_widgets_by_pl(self.__dict__)
         self.user_profile.fill_line_edits()
 
-    def exit(self) -> None:
-        self.close()
-
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        self.exit()
+        exit()
 
 
 class PageListMenu(QtWidgets.QWidget):
-    pages = []
-
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -82,8 +97,6 @@ class PageListMenu(QtWidgets.QWidget):
         self.main_v_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.main_v_layout.setContentsMargins(5, 5, 5, 5)
 
-        self.setProperty('test', 'test')
-
         self.tour_item.setup('tour.png', 'Tours')
         self.ticket_item.setup('ticket.png', 'Tickets')
 
@@ -93,18 +106,10 @@ class PageListMenu(QtWidgets.QWidget):
         self.tour_item.set_required_power_level(0)
         self.ticket_item.set_required_power_level(1)
 
-        self.pages.append(self.tour_item)
-        self.pages.append(self.ticket_item)
+        self.tour_item.setProperty('power_level', 0)
+        self.ticket_item.setProperty('power_level', 1)
 
-        self.enable_elements_by_power_level()
-
-    def enable_elements_by_power_level(self) -> None:
-        global session
-        for page in self.pages:
-            if session.user.power_level >= page.required_power_level:
-                page.show()
-            else:
-                page.hide()
+       # include_widgets_by_pl(self.__dict__)
 
     class MenuItem(QtWidgets.QFrame):
         connection_def = None
@@ -193,14 +198,11 @@ class TourList(QtWidgets.QWidget):
         self.scroll_widget.setLayout(self.scroll_layout)
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
-        self.scroll_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-
-        for x in range(20):
-            self.add_tour('1', '24', '214')
 
     def add_tour(self, country: str, hours: str, price: str) -> None:
         new_tour = TourItem()
         new_tour.set_tour_info(country, hours, price)
+        new_tour.setParent(self)
         self.scroll_layout.addWidget(new_tour)
 
 
@@ -216,6 +218,8 @@ class TourItem(QtWidgets.QWidget):
         self.hours = QtWidgets.QLabel()
         self.price = QtWidgets.QLabel()
         self.buy_button = QtWidgets.QPushButton()
+        self.edit_button = QtWidgets.QPushButton()
+        self.delete_button = QtWidgets.QPushButton()
 
     def __setupUi(self) -> None:
         self.setLayout(self.main_h_layout)
@@ -225,8 +229,19 @@ class TourItem(QtWidgets.QWidget):
         self.main_h_layout.addWidget(self.hours)
         self.main_h_layout.addWidget(self.price)
         self.main_h_layout.addWidget(self.buy_button)
+        self.main_h_layout.addWidget(self.edit_button)
+        self.main_h_layout.addWidget(self.delete_button)
 
         self.buy_button.setText('Buy')
+        self.edit_button.setIcon(QtGui.QPixmap(get_pixmap_path('edit.png')))
+        self.delete_button.setIcon(QtGui.QPixmap(get_pixmap_path('delete.png')))
+        self.edit_button.setProperty('power_level', 2)
+        self.delete_button.setProperty('power_level', 2)
+
+        self.edit_button.setFixedSize(24, 24)
+        self.delete_button.setFixedSize(24, 24)
+
+       # include_widgets_by_pl(self.__dict__)
 
     def set_tour_info(self, country: str, hours: str, price: str) -> None:
         self.country.setText(country)
