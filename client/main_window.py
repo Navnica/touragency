@@ -5,7 +5,7 @@ from client.tools import get_pixmap_path
 from client.api.session import Session
 import client.api.resolvers
 from server.sql_base.models import User
-from random import randint
+import threading
 
 session: Session = Session()
 
@@ -58,8 +58,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.page_list.ticket_item.connect_function(lambda: self.page_list.switch_page(self.ticket_list))
         self.page_list.tour_item.connect_function(lambda: self.page_list.switch_page(self.tour_list))
-
-        self.tour_list.load_tours()
 
         include_widgets_by_pl(self.__dict__)
 
@@ -117,9 +115,6 @@ class PageListMenu(QtWidgets.QWidget):
         self.main_v_layout.addWidget(self.tour_item)
         self.main_v_layout.addWidget(self.ticket_item)
 
-        self.tour_item.set_required_power_level(0)
-        self.ticket_item.set_required_power_level(1)
-
         self.tour_item.setProperty('power_level', 0)
         self.ticket_item.setProperty('power_level', 1)
 
@@ -131,7 +126,6 @@ class PageListMenu(QtWidgets.QWidget):
 
 class MenuItem(QtWidgets.QFrame):
     connection_def = None
-    required_power_level = 0
 
     def __init__(self) -> None:
         super().__init__()
@@ -181,9 +175,6 @@ class MenuItem(QtWidgets.QFrame):
         if self.connection_def:
             self.connection_def()
 
-    def set_required_power_level(self, level: int):
-        self.required_power_level = level
-
     def connect_function(self, foo):
         self.connection_def = foo
 
@@ -198,6 +189,9 @@ class MenuItem(QtWidgets.QFrame):
 
 
 class TourList(QtWidgets.QWidget):
+    add_tour_signal = QtCore.Signal(str, str, str, str)
+    stop_flag: bool = False
+
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -217,20 +211,29 @@ class TourList(QtWidgets.QWidget):
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
+        self.add_tour_signal.connect(self.add_tour_slot)
+
+        threading.Thread(target=self.load_tours).start()
+
     def load_tours(self) -> None:
         for tour in client.api.resolvers.get_all_tours():
             country = client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
-            self.add_tour(
-                tour_id=str(tour['id']),
-                country=country,
-                hours=str(tour['hours']),
-                price=str(tour['price']))
+            self.add_tour_signal.emit(
+                str(tour['id']),
+                country,
+                str(tour['hours']),
+                str(tour['price']))
 
     def add_tour(self, tour_id: str, country: str, hours: str, price: str) -> None:
         new_tour = TourItem()
         new_tour.set_tour_info(country, hours, price)
         self.scroll_widget.__dict__.update({tour_id: new_tour})
         self.scroll_layout.addWidget(new_tour)
+
+    @QtCore.Slot(str, str, str, str)
+    def add_tour_slot(self, tour_id: str, country: str, hours: str, price: str) -> None:
+        self.add_tour(tour_id, country, hours, price)
+        include_widgets_by_pl(self.__dict__)
 
 
 class TourItem(QtWidgets.QWidget):

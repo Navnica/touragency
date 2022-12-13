@@ -55,5 +55,5 @@ def get_all_tours() -> dict:
 
 
 @server_available
-def get_country_by_id(country_id: int) -> dict:
+def get_country_by_id(country_id: int):
     return requests.get(url=f'{server_url}/country/get/{country_id}').json()

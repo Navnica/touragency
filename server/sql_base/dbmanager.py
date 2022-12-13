@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from . import errors
+from server.sql_base import errors
 
 
 class DbManager:
