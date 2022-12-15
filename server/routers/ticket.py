@@ -19,7 +19,7 @@ def get_all() -> list[Ticket] | dict:
 
 @router.delete('/delete/{ticket_id}', response_model=None)
 def remove(ticket_id: int) -> None:
-    return ticket.remove(ticket_id)
+    return ticket.delete(ticket_id)
 
 
 @router.post('/create/', response_model=Ticket | dict)

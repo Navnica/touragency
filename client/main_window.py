@@ -4,10 +4,13 @@ from client.register_form import RegisterWindow
 from client.tools import get_pixmap_path
 from client.api.session import Session
 import client.api.resolvers
-from server.sql_base.models import User
+from server.sql_base.models import User, Ticket
 import threading
+import datetime
+import random
 
 session: Session = Session()
+main_win = None
 
 
 def include_widgets_by_pl(element: dict[str, QtWidgets.QWidget]):
@@ -34,8 +37,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.central_widget = QtWidgets.QWidget()
         self.main_h_layout = QtWidgets.QHBoxLayout()
         self.page_list = PageListMenu()
+        self.widget_container = QtWidgets.QWidget()
+        self.widget_container_layout = QtWidgets.QVBoxLayout()
         self.tour_list = TourList()
         self.ticket_list = TicketList()
+        self.country_list = CountryList()
         self.authorization_menu = AuthorizationMenu()
         self.user_profile = UserProfile()
 
@@ -44,24 +50,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('Tour agency Client')
         self.setCentralWidget(self.central_widget)
         self.central_widget.setLayout(self.main_h_layout)
+        self.widget_container.setLayout(self.widget_container_layout)
         self.main_h_layout.setContentsMargins(0, 0, 0, 0)
+        self.widget_container_layout.setContentsMargins(0, 0, 0, 0)
 
         self.main_h_layout.addWidget(self.page_list)
-        self.main_h_layout.addWidget(self.tour_list)
-        self.main_h_layout.addWidget(self.ticket_list)
+        self.main_h_layout.addWidget(self.widget_container)
         self.main_h_layout.addWidget(self.authorization_menu)
         self.main_h_layout.addWidget(self.user_profile)
 
-        self.ticket_list.hide()
+        self.widget_container_layout.addWidget(self.tour_list)
+        self.widget_container_layout.addWidget(self.ticket_list)
+        self.widget_container_layout.addWidget(self.country_list)
 
-        self.page_list.switch_page(self.tour_list)
-
-        self.page_list.ticket_item.connect_function(lambda: self.page_list.switch_page(self.ticket_list))
-        self.page_list.tour_item.connect_function(lambda: self.page_list.switch_page(self.tour_list))
+        self.page_list.tour_item.bind_widget(self.tour_list)
+        self.page_list.ticket_item.bind_widget(self.ticket_list)
+        self.page_list.country_item.bind_widget(self.country_list)
 
         include_widgets_by_pl(self.__dict__)
-
+        global main_win
+        main_win = self
         self.user_profile.hide()
+
+        self.page_list.tour_item.switch_page()
 
     def show_message(self, text: str, error: bool = False, parent=None) -> None:
         messagebox = QtWidgets.QMessageBox(self if not parent else parent)
@@ -81,17 +92,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_profile.show()
         include_widgets_by_pl(self.__dict__)
         self.user_profile.fill_line_edits()
+        self.ticket_list.update_tickets()
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        self.tour_list.stop_flag = True
+        self.ticket_list.stop_flag = True
         exit()
-
-    def showEvent(self, event: QtGui.QShowEvent) -> None:
-        pass
 
 
 class PageListMenu(QtWidgets.QWidget):
-    opened_widget = None
-
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -101,9 +110,10 @@ class PageListMenu(QtWidgets.QWidget):
         self.main_v_layout = QtWidgets.QVBoxLayout()
         self.tour_item = MenuItem()
         self.ticket_item = MenuItem()
+        self.country_item = MenuItem()
 
     def __setupUi(self) -> None:
-        self.setMaximumWidth(120)
+        self.setMaximumWidth(150)
         self.setLayout(self.main_v_layout)
         self.main_v_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.main_v_layout.setContentsMargins(5, 5, 5, 5)
@@ -111,21 +121,20 @@ class PageListMenu(QtWidgets.QWidget):
 
         self.tour_item.setup('tour.png', 'Tours')
         self.ticket_item.setup('ticket.png', 'Tickets')
+        self.country_item.setup('country.png', 'Countries')
 
         self.main_v_layout.addWidget(self.tour_item)
         self.main_v_layout.addWidget(self.ticket_item)
+        self.main_v_layout.addWidget(self.country_item)
 
         self.tour_item.setProperty('power_level', 0)
         self.ticket_item.setProperty('power_level', 1)
-
-    def switch_page(self, page):
-        self.opened_widget.hide()
-        self.opened_widget = page
-        page.show()
+        self.country_item.setProperty('power_level', 2)
 
 
 class MenuItem(QtWidgets.QFrame):
     connection_def = None
+    widget: QtWidgets.QWidget = None
 
     def __init__(self) -> None:
         super().__init__()
@@ -163,6 +172,9 @@ class MenuItem(QtWidgets.QFrame):
     def set_title(self, title: str) -> None:
         self.title.setText(title)
 
+    def bind_widget(self, widget: QtWidgets.QWidget):
+        self.widget = widget
+
     def on_mouse_enter(self):
         self.setStyleSheet('QFrame{background-color: darkgray; border-radius: 15px}')
         self.title.setStyleSheet('color: white')
@@ -172,6 +184,7 @@ class MenuItem(QtWidgets.QFrame):
         self.title.setStyleSheet('color: black')
 
     def on_mouse_clicked(self):
+        self.switch_page()
         if self.connection_def:
             self.connection_def()
 
@@ -186,6 +199,13 @@ class MenuItem(QtWidgets.QFrame):
 
     def mouseReleaseEvent(self, event: QtGui.QMouseEvent) -> None:
         self.on_mouse_clicked()
+
+    def switch_page(self):
+        for item in self.parent().__dict__:
+            page: MenuItem = self.parent().__dict__[item]
+
+            if type(page) == MenuItem:
+                page.widget.show() if page == self else page.widget.hide()
 
 
 class TourList(QtWidgets.QWidget):
@@ -213,10 +233,16 @@ class TourList(QtWidgets.QWidget):
 
         self.add_tour_signal.connect(self.add_tour_slot)
 
+        self.update_tours()
+
+    def update_tours(self):
         threading.Thread(target=self.load_tours).start()
 
     def load_tours(self) -> None:
         for tour in client.api.resolvers.get_all_tours():
+            if self.stop_flag:
+                exit()
+
             country = client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
             self.add_tour_signal.emit(
                 str(tour['id']),
@@ -226,7 +252,11 @@ class TourList(QtWidgets.QWidget):
 
     def add_tour(self, tour_id: str, country: str, hours: str, price: str) -> None:
         new_tour = TourItem()
-        new_tour.set_tour_info(country, hours, price)
+        new_tour.set_tour_info(tour_id, country, hours, price)
+
+        if tour_id in self.scroll_widget.__dict__:
+            self.scroll_widget.__dict__.pop(tour_id)
+
         self.scroll_widget.__dict__.update({tour_id: new_tour})
         self.scroll_layout.addWidget(new_tour)
 
@@ -267,19 +297,158 @@ class TourItem(QtWidgets.QWidget):
         self.delete_button.setIcon(QtGui.QPixmap(get_pixmap_path('delete.png')))
         self.edit_button.setProperty('power_level', 2)
         self.delete_button.setProperty('power_level', 2)
+        self.buy_button.setProperty('power_level', 1)
+
+        self.country.setAlignment(QtGui.Qt.AlignmentFlag.AlignCenter)
+        self.price.setAlignment(QtGui.Qt.AlignmentFlag.AlignCenter)
+        self.hours.setAlignment(QtGui.Qt.AlignmentFlag.AlignCenter)
 
         self.edit_button.setFixedSize(24, 24)
         self.delete_button.setFixedSize(24, 24)
 
-    # include_widgets_by_pl(self.__dict__)
-
-    def set_tour_info(self, country: str, hours: str, price: str) -> None:
+    def set_tour_info(self, tour_id: int, country: str, hours: str, price: str) -> None:
         self.country.setText(country)
         self.hours.setText(hours)
         self.price.setText(price)
+        self.buy_button.clicked.connect(lambda: self.buy_ticket(tour_id))
+
+    def buy_ticket(self, tour_id: int):
+        global main_win
+
+        main_win.page_list.ticket_item.widget.new_ticket(tour_id)
 
 
 class TicketList(QtWidgets.QWidget):
+    stop_flag: bool = False
+    add_ticket_signal: QtCore.Signal = QtCore.Signal(int, str, datetime.datetime, datetime.datetime)
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.__initUi()
+        self.__setupUi()
+
+    def __initUi(self) -> None:
+        self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.scroll_area = QtWidgets.QScrollArea()
+        self.scroll_widget = QtWidgets.QWidget()
+        self.scroll_layout = QtWidgets.QVBoxLayout()
+
+    def __setupUi(self) -> None:
+        self.setLayout(self.main_v_layout)
+        self.main_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.scroll_area.setWidget(self.scroll_widget)
+        self.scroll_widget.setLayout(self.scroll_layout)
+        self.main_v_layout.addWidget(self.scroll_area)
+        self.scroll_area.setWidgetResizable(True)
+
+        self.add_ticket_signal.connect(self.add_ticket)
+
+    def new_ticket(self, tour_id: int):
+        global session
+
+        tour_info = client.api.resolvers.get_tour_by_id(tour_id)
+        date_start = datetime.datetime.now()
+        date_end = date_start + datetime.timedelta(hours=int(tour_info['hours']))
+
+        new_ticket = Ticket(
+            tour_id=tour_id,
+            date_start=str(date_start),
+            date_end=str(date_end),
+            user_id=session.user.id
+        )
+
+        client.api.resolvers.new_ticket(new_ticket)
+
+        self.update_tickets()
+
+    def update_tickets(self) -> None:
+        threading.Thread(target=self.load_tickets).start()
+
+    def load_tickets(self) -> None:
+        global session
+
+        for ticket in client.api.resolvers.get_all_tickets():
+            if self.stop_flag:
+                exit()
+
+            if not ticket['user_id'] == session.user.id:
+                continue
+
+            country = client.api.resolvers.get_tour_by_id(ticket['tour_id'])
+            country = client.api.resolvers.get_country_by_id(int(country['country_id']))['name']
+
+            self.add_ticket_signal.emit(
+                ticket['id'],
+                country,
+                ticket['date_start'],
+                ticket['date_end']
+            )
+
+    def add_ticket(self, ticket_id, country, date_start, date_end):
+        new_ticket = TicketItem()
+
+        if ticket_id in self.scroll_widget.__dict__:
+            self.scroll_widget.__dict__[ticket_id].close()
+            self.scroll_widget.__dict__.pop(ticket_id)
+
+        self.scroll_widget.__dict__.update({ticket_id: new_ticket})
+        new_ticket.set_ticket_info(ticket_id, country, date_start, date_end)
+        self.scroll_layout.addWidget(new_ticket)
+
+    @QtCore.Slot(int, str, datetime.datetime, datetime.datetime)
+    def add_ticket_slot(self, ticket_id: int, country: str, date_start: datetime.datetime, date_end: datetime.datetime):
+        self.add_ticket(ticket_id, country, date_start, date_end)
+        include_widgets_by_pl(self.__dict__)
+
+
+class TicketItem(QtWidgets.QWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.__initUi()
+        self.__setupUi()
+
+    def __initUi(self) -> None:
+        self.main_h_layout = QtWidgets.QHBoxLayout()
+        self.country = QtWidgets.QLabel()
+        self.date_start = QtWidgets.QLabel()
+        self.date_end = QtWidgets.QLabel()
+        self.delete_button = QtWidgets.QPushButton()
+
+    def __setupUi(self) -> None:
+        self.setLayout(self.main_h_layout)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        self.setProperty('power_level', 1)
+
+        self.main_h_layout.addWidget(self.country)
+        self.main_h_layout.addWidget(self.date_start)
+        self.main_h_layout.addWidget(self.date_end)
+        self.main_h_layout.addWidget(self.delete_button)
+
+        self.delete_button.setIcon(QtGui.QPixmap(get_pixmap_path('delete.png')))
+        self.delete_button.setFixedSize(24, 24)
+
+        self.country.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_start.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.date_end.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+    def set_ticket_info(self, ticket_id: int, country: str, date_start, date_end) -> None:
+        date_start = date_start[:10].replace('-', '.')
+        date_end = date_end[:10].replace('-', '.')
+
+        self.country.setText(country)
+        self.date_start.setText(date_start)
+        self.date_end.setText(date_end)
+
+        self.delete_button.clicked.connect(lambda: self.delete_ticket(ticket_id))
+
+    def delete_ticket(self, ticket_id: int) -> None:
+        client.api.resolvers.delete_ticket(ticket_id)
+        self.parent().__dict__[ticket_id].close()
+        self.parent().__dict__.pop(ticket_id)
+
+
+class CountryList(QtWidgets.QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
