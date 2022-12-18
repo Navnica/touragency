@@ -3,11 +3,11 @@ from client.login_form import LoginWindow
 from client.register_form import RegisterWindow
 from client.tools import get_pixmap_path
 from client.api.session import Session
+from client.tour_edit_form import TourEdit
 import client.api.resolvers
 from server.sql_base.models import User, Ticket
 import threading
 import datetime
-import random
 
 session: Session = Session()
 main_win = None
@@ -311,11 +311,17 @@ class TourItem(QtWidgets.QWidget):
         self.hours.setText(hours)
         self.price.setText(price)
         self.buy_button.clicked.connect(lambda: self.buy_ticket(tour_id))
+        self.edit_button.clicked.connect(lambda: self.edit_tour(tour_id))
 
     def buy_ticket(self, tour_id: int):
         global main_win
 
         main_win.page_list.ticket_item.widget.new_ticket(tour_id)
+
+    def edit_tour(self, tour_id: int):
+        global main_win
+
+        TourEdit(main_win, tour_id)
 
 
 class TicketList(QtWidgets.QWidget):
