@@ -31,10 +31,6 @@ class Country(BaseModelModify):
     name: str
 
 
-class Personal(User):
-    power_level: int = 1
-
-
 class UserAuth(BaseModel):
     phone: str
     password: str

@@ -1,8 +1,11 @@
 from PySide6 import QtWidgets, QtCore
+import client.api.resolvers
+from server.sql_base.models import Tour
 
 
 class TourEdit(QtWidgets.QDialog):
     tour_id: int = None
+    countries = {str: int}
 
     def __init__(self, parent, tour_id: int) -> None:
         super().__init__(parent=parent)
@@ -46,12 +49,54 @@ class TourEdit(QtWidgets.QDialog):
         self.update_button.clicked.connect(self.on_update_clicK)
         self.close_button.clicked.connect(self.on_close_click)
 
+        self.country_combo_box.insertItem(0, self.parent().country.text())
+        self.price_line_edit.setText(self.parent().price.text())
+        self.hours_line_edit.setText(self.parent().hours.text())
+
+        for c in client.api.resolvers.get_all_countries():
+            c = client.api.resolvers.get_country_by_id(c['id'])
+
+            self.countries[c['name']] = c['id']
+
+            if self.parent().country.text() == c['name']:
+                continue
+
+            self.country_combo_box.insertItem(self.country_combo_box.count(), c['name'])
+
         self.spacer.setFixedHeight(10)
         self.update_button.setFixedWidth(50)
         self.close_button.setFixedWidth(50)
 
-    def on_update_clicK(self):
-        pass
+    def data_validate(self) -> bool:
+        return self.hours_line_edit.text() != '' or self.price_line_edit.text() != ''
 
-    def on_close_click(self):
+    def on_update_clicK(self) -> None:
+        if not self.data_validate():
+            messagebox = QtWidgets.QMessageBox(self)
+            messagebox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+            messagebox.setWindowTitle("Error")
+            messagebox.setText('One or more fields is empty')
+            messagebox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+            messagebox.show()
+
+            QtWidgets.QMessageBox()
+
+        tour = Tour(
+            id=self.tour_id,
+            country_id=self.countries[self.country_combo_box.currentText()],
+            hours=self.hours_line_edit.text(),
+            price=self.price_line_edit.text()
+        )
+
+        answer = client.api.resolvers.update_tour(tour)
+
+        match answer:
+            case {'error': error}:
+                print(error)
+                return
+
+        self.parent().tour_updated()
+        self.close()
+
+    def on_close_click(self) -> None:
         self.close()

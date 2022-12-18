@@ -255,6 +255,7 @@ class TourList(QtWidgets.QWidget):
         new_tour.set_tour_info(tour_id, country, hours, price)
 
         if tour_id in self.scroll_widget.__dict__:
+            self.scroll_widget.__dict__[tour_id].close()
             self.scroll_widget.__dict__.pop(tour_id)
 
         self.scroll_widget.__dict__.update({tour_id: new_tour})
@@ -321,7 +322,13 @@ class TourItem(QtWidgets.QWidget):
     def edit_tour(self, tour_id: int):
         global main_win
 
-        TourEdit(main_win, tour_id)
+        TourEdit(self, tour_id)
+
+    def tour_updated(self):
+        global main_win
+
+        main_win.tour_list.update_tours()
+        main_win.ticket_list.update_tickets()
 
 
 class TicketList(QtWidgets.QWidget):

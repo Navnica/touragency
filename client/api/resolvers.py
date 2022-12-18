@@ -55,18 +55,29 @@ def get_all_tours() -> dict:
 
 
 @server_available
-def get_all_tickets() -> dict:
-    return requests.get(url=f'{server_url}/ticket/get_all').json()
-
-
-@server_available
 def get_tour_by_id(tour_id: int) -> dict:
     return requests.get(url=f'{server_url}/tour/get/{tour_id}').json()
 
 
 @server_available
+def update_tour(tour: models.Tour) -> None | dict:
+    data = f'{{"country_id": "{tour.country_id}", "hours": "{tour.hours}", "price": "{tour.price}"}}'
+    return requests.put(url=f'{server_url}/tour/update/{tour.id}', data=data).json()
+
+
+@server_available
 def get_country_by_id(country_id: int) -> dict:
     return requests.get(url=f'{server_url}/country/get/{country_id}').json()
+
+
+@server_available
+def get_all_countries():
+    return requests.get(url=f'{server_url}/country/get_all').json()
+
+
+@server_available
+def get_all_tickets() -> dict:
+    return requests.get(url=f'{server_url}/ticket/get_all').json()
 
 
 @server_available
@@ -84,3 +95,4 @@ def new_ticket(ticket: models.Ticket) -> dict:
 @server_available
 def delete_ticket(ticket_id: int):
     return requests.delete(url=f'{server_url}/ticket/delete/{ticket_id}').json()
+
