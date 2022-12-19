@@ -16,7 +16,7 @@ def get_all() -> list[Tour]:
 
 
 @router.delete('/delete/{tour_id}', response_model=None)
-def remove(tour_id: int) -> None:
+def delete(tour_id: int) -> None:
     return tour.delete(tour_id)
 
 

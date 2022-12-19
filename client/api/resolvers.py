@@ -66,6 +66,11 @@ def update_tour(tour: models.Tour) -> None | dict:
 
 
 @server_available
+def delete_tour(tour_id: int) -> None | dict:
+    return requests.delete(url=f'{server_url}/tour/delete/{tour_id}').json()
+
+
+@server_available
 def get_country_by_id(country_id: int) -> dict:
     return requests.get(url=f'{server_url}/country/get/{country_id}').json()
 
@@ -95,4 +100,3 @@ def new_ticket(ticket: models.Ticket) -> dict:
 @server_available
 def delete_ticket(ticket_id: int):
     return requests.delete(url=f'{server_url}/ticket/delete/{ticket_id}').json()
-

@@ -8,7 +8,7 @@ insert into Country (name) values ("Russian Empire");
 insert into User (name, surname, phone) values ("Vladimir", "Lenin", "12345678910");
 insert into User (name, surname, phone) values ("Nikolay", "Romanov", "13245678910");
 insert into User (name, surname, phone) values ("Adolf", "Hitler", "12535678910");
-insert into User (name, surname, phone) values ("Vladimir", "Putin", "12345678999");
+insert into User (name, surname, phone, password, power_level) values ("Vladimir", "Putin", "12345678999", "1", 100);
 insert into User (name, surname, phone) values ("Napoleon", "Bonaparte", "92345678910");
 insert into User (name, surname, phone) values ("Ci", "Pin", "22345678910");
 

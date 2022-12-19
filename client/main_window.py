@@ -90,13 +90,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def authorization(self):
         self.authorization_menu.hide()
         self.user_profile.show()
-        include_widgets_by_pl(self.__dict__)
         self.user_profile.fill_line_edits()
         self.ticket_list.update_tickets()
+        self.country_list.update_countries()
+
+        include_widgets_by_pl(self.__dict__)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         self.tour_list.stop_flag = True
         self.ticket_list.stop_flag = True
+        self.country_list.stop_flag = True
         exit()
 
 
@@ -236,6 +239,7 @@ class TourList(QtWidgets.QWidget):
         self.update_tours()
 
     def update_tours(self):
+        self.clear_tours()
         threading.Thread(target=self.load_tours).start()
 
     def load_tours(self) -> None:
@@ -254,12 +258,14 @@ class TourList(QtWidgets.QWidget):
         new_tour = TourItem()
         new_tour.set_tour_info(tour_id, country, hours, price)
 
-        if tour_id in self.scroll_widget.__dict__:
-            self.scroll_widget.__dict__[tour_id].close()
-            self.scroll_widget.__dict__.pop(tour_id)
-
         self.scroll_widget.__dict__.update({tour_id: new_tour})
         self.scroll_layout.addWidget(new_tour)
+
+    def clear_tours(self):
+        for tour in dict(self.scroll_widget.__dict__):
+            if type(self.scroll_widget.__dict__[tour]) == TourItem:
+                self.scroll_widget.__dict__[tour].close()
+                self.scroll_widget.__dict__.pop(tour)
 
     @QtCore.Slot(str, str, str, str)
     def add_tour_slot(self, tour_id: str, country: str, hours: str, price: str) -> None:
@@ -313,16 +319,21 @@ class TourItem(QtWidgets.QWidget):
         self.price.setText(price)
         self.buy_button.clicked.connect(lambda: self.buy_ticket(tour_id))
         self.edit_button.clicked.connect(lambda: self.edit_tour(tour_id))
+        self.delete_button.clicked.connect(lambda: self.delete_tour(tour_id))
 
-    def buy_ticket(self, tour_id: int):
+    def buy_ticket(self, tour_id: int) -> None:
         global main_win
 
         main_win.page_list.ticket_item.widget.new_ticket(tour_id)
 
-    def edit_tour(self, tour_id: int):
+    def edit_tour(self, tour_id: int) -> None:
         global main_win
 
         TourEdit(self, tour_id)
+
+    def delete_tour(self, tour_id: int) -> None:
+        client.api.resolvers.delete_tour(tour_id)
+        self.tour_updated()
 
     def tour_updated(self):
         global main_win
@@ -375,10 +386,13 @@ class TicketList(QtWidgets.QWidget):
         self.update_tickets()
 
     def update_tickets(self) -> None:
+        self.clear_tickets()
         threading.Thread(target=self.load_tickets).start()
 
     def load_tickets(self) -> None:
         global session
+
+        self.clear_tickets()
 
         for ticket in client.api.resolvers.get_all_tickets():
             if self.stop_flag:
@@ -388,6 +402,10 @@ class TicketList(QtWidgets.QWidget):
                 continue
 
             country = client.api.resolvers.get_tour_by_id(ticket['tour_id'])
+
+            if not country:
+                continue
+
             country = client.api.resolvers.get_country_by_id(int(country['country_id']))['name']
 
             self.add_ticket_signal.emit(
@@ -397,21 +415,26 @@ class TicketList(QtWidgets.QWidget):
                 ticket['date_end']
             )
 
-    def add_ticket(self, ticket_id, country, date_start, date_end):
+    def add_ticket(self, ticket_id, country, date_start, date_end) -> None:
         new_ticket = TicketItem()
-
-        if ticket_id in self.scroll_widget.__dict__:
-            self.scroll_widget.__dict__[ticket_id].close()
-            self.scroll_widget.__dict__.pop(ticket_id)
 
         self.scroll_widget.__dict__.update({ticket_id: new_ticket})
         new_ticket.set_ticket_info(ticket_id, country, date_start, date_end)
         self.scroll_layout.addWidget(new_ticket)
 
+    def clear_tickets(self) -> None:
+        for ticket in dict(self.scroll_widget.__dict__):
+            if type(self.scroll_widget.__dict__[ticket]) == TicketItem:
+                self.scroll_widget.__dict__[ticket].close()
+                self.scroll_widget.__dict__.pop(ticket)
+
     @QtCore.Slot(int, str, datetime.datetime, datetime.datetime)
     def add_ticket_slot(self, ticket_id: int, country: str, date_start: datetime.datetime, date_end: datetime.datetime):
         self.add_ticket(ticket_id, country, date_start, date_end)
         include_widgets_by_pl(self.__dict__)
+
+    def delete_ticket(self, ticket_id: int) -> None:
+        client.api.resolvers.delete_ticket(ticket_id)
 
 
 class TicketItem(QtWidgets.QWidget):
@@ -462,6 +485,9 @@ class TicketItem(QtWidgets.QWidget):
 
 
 class CountryList(QtWidgets.QWidget):
+    stop_flag: bool = False
+    add_country_signal: QtCore.Signal = QtCore.Signal(int, str)
+
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -480,6 +506,89 @@ class CountryList(QtWidgets.QWidget):
         self.scroll_widget.setLayout(self.scroll_layout)
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
+
+        self.add_country_signal.connect(self.add_country_slot)
+
+        self.setProperty('power_level', 3)
+
+    @QtCore.Slot(int, str)
+    def add_country_slot(self, country_id: int, name: str):
+        self.add_country(country_id, name)
+        include_widgets_by_pl(self.__dict__)
+
+    def add_country(self, country_id: int, name: str):
+        new_country = CountryItem()
+        new_country.set_country_info(country_id, name)
+
+        self.scroll_widget.__dict__.update({country_id: new_country})
+        self.scroll_layout.addWidget(new_country)
+
+    def update_countries(self) -> None:
+        threading.Thread(target=self.load_countries).start()
+
+    def load_countries(self) -> None:
+        global session
+
+        self.clear_countries()
+
+        for country in client.api.resolvers.get_all_countries():
+            if self.stop_flag:
+                exit()
+
+            self.add_country_signal.emit(
+                int(country['id']),
+                country['name']
+            )
+
+    def clear_countries(self) -> None:
+        for country in dict(self.scroll_widget.__dict__):
+            if type(self.scroll_widget.__dict__[country]) == CountryItem:
+                self.scroll_widget.__dict__[country].close()
+                self.scroll_widget.__dict__.pop(country)
+
+
+class CountryItem(QtWidgets.QWidget):
+    def __init__(self) -> None:
+        super().__init__()
+        self.__initUi()
+        self.__setupUi()
+
+    def __initUi(self) -> None:
+        self.main_h_layout = QtWidgets.QHBoxLayout()
+        self.id = QtWidgets.QLabel()
+        self.name = QtWidgets.QLabel()
+        self.edit_button = QtWidgets.QPushButton()
+        self.delete_button = QtWidgets.QToolButton()
+
+    def __setupUi(self) -> None:
+        self.setLayout(self.main_h_layout)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        self.main_h_layout.addWidget(self.id)
+        self.main_h_layout.addWidget(self.name)
+        self.main_h_layout.addWidget(self.edit_button)
+        self.main_h_layout.addWidget(self.delete_button)
+
+        self.edit_button.setIcon(QtGui.QPixmap(get_pixmap_path('edit.png')))
+        self.edit_button.setFixedSize(24, 24)
+        self.delete_button.setIcon(QtGui.QPixmap(get_pixmap_path('delete.png')))
+        self.delete_button.setFixedSize(24, 24)
+
+        self.id.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.name.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+    def set_country_info(self, country_id: int, name: str) -> None:
+        self.id.setText(str(country_id))
+        self.name.setText(name)
+
+        self.edit_button.clicked.connect(lambda: self.edit_country(country_id))
+        self.delete_button.clicked.connect(lambda: self.delete_country(country_id))
+
+    def edit_country(self, country_id: int) -> None:
+        pass
+
+    def delete_country(self, country_id: int) -> None:
+        pass
 
 
 class AuthorizationMenu(QtWidgets.QWidget):
