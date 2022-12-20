@@ -4,8 +4,9 @@ from client.register_form import RegisterWindow
 from client.tools import get_pixmap_path
 from client.api.session import Session
 from client.tour_edit_form import TourEdit
+from client.tour_cteate_form import TourCreate
 import client.api.resolvers
-from server.sql_base.models import User, Ticket
+from server.sql_base.models import User, Ticket, Tour
 import threading
 import datetime
 
@@ -53,6 +54,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.widget_container.setLayout(self.widget_container_layout)
         self.main_h_layout.setContentsMargins(0, 0, 0, 0)
         self.widget_container_layout.setContentsMargins(0, 0, 0, 0)
+        self.widget_container_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
 
         self.main_h_layout.addWidget(self.page_list)
         self.main_h_layout.addWidget(self.widget_container)
@@ -132,7 +134,7 @@ class PageListMenu(QtWidgets.QWidget):
 
         self.tour_item.setProperty('power_level', 0)
         self.ticket_item.setProperty('power_level', 1)
-        self.country_item.setProperty('power_level', 2)
+        self.country_item.setProperty('power_level', 3)
 
 
 class MenuItem(QtWidgets.QFrame):
@@ -225,18 +227,28 @@ class TourList(QtWidgets.QWidget):
         self.scroll_area = QtWidgets.QScrollArea()
         self.scroll_widget = QtWidgets.QWidget()
         self.scroll_layout = QtWidgets.QVBoxLayout()
+        self.create_tour_button = QtWidgets.QPushButton()
 
     def __setupUi(self) -> None:
         self.setLayout(self.main_v_layout)
-        self.main_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_v_layout.setContentsMargins(0, 5, 0, 0)
         self.scroll_area.setWidget(self.scroll_widget)
         self.scroll_widget.setLayout(self.scroll_layout)
+        self.main_v_layout.addWidget(self.create_tour_button)
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
+        self.create_tour_button.setText('New')
+        self.create_tour_button.setFixedWidth(40)
+        self.create_tour_button.setProperty('power_level', 2)
+
+        self.create_tour_button.clicked.connect(self.create_tour)
         self.add_tour_signal.connect(self.add_tour_slot)
 
         self.update_tours()
+
+    def create_tour(self) -> None:
+        TourCreate(self)
 
     def update_tours(self):
         self.clear_tours()
@@ -248,6 +260,10 @@ class TourList(QtWidgets.QWidget):
                 exit()
 
             country = client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
+
+            if not country:
+                continue
+
             self.add_tour_signal.emit(
                 str(tour['id']),
                 country,
@@ -310,6 +326,7 @@ class TourItem(QtWidgets.QWidget):
         self.price.setAlignment(QtGui.Qt.AlignmentFlag.AlignCenter)
         self.hours.setAlignment(QtGui.Qt.AlignmentFlag.AlignCenter)
 
+        self.buy_button.setFixedWidth(40)
         self.edit_button.setFixedSize(24, 24)
         self.delete_button.setFixedSize(24, 24)
 
@@ -508,8 +525,6 @@ class CountryList(QtWidgets.QWidget):
         self.scroll_area.setWidgetResizable(True)
 
         self.add_country_signal.connect(self.add_country_slot)
-
-        self.setProperty('power_level', 3)
 
     @QtCore.Slot(int, str)
     def add_country_slot(self, country_id: int, name: str):

@@ -18,6 +18,7 @@ def server_available(func) -> Callable[[tuple[Any, ...], dict[str, Any]], dict[s
     return need_it
 
 
+# User
 @server_available
 def login(user_login: str, user_password: str) -> dict | None:
     answer = requests.post(
@@ -49,6 +50,7 @@ def update_user(user: models.User) -> None | dict:
     return answer
 
 
+# Tour
 @server_available
 def get_all_tours() -> dict:
     return requests.get(url=f'{server_url}/tour/get_all').json()
@@ -66,10 +68,17 @@ def update_tour(tour: models.Tour) -> None | dict:
 
 
 @server_available
+def create_tour(tour: models.Tour) -> models.Tour:
+    data = f'{{"country_id": "{tour.country_id}", "hours": "{tour.hours}", "price": "{tour.price}"}}'
+    return requests.post(url=f'{server_url}/tour/create', data=data).json()
+
+
+@server_available
 def delete_tour(tour_id: int) -> None | dict:
     return requests.delete(url=f'{server_url}/tour/delete/{tour_id}').json()
 
 
+# Country
 @server_available
 def get_country_by_id(country_id: int) -> dict:
     return requests.get(url=f'{server_url}/country/get/{country_id}').json()
@@ -80,6 +89,7 @@ def get_all_countries():
     return requests.get(url=f'{server_url}/country/get_all').json()
 
 
+# Ticket
 @server_available
 def get_all_tickets() -> dict:
     return requests.get(url=f'{server_url}/ticket/get_all').json()
@@ -98,5 +108,5 @@ def new_ticket(ticket: models.Ticket) -> dict:
 
 
 @server_available
-def delete_ticket(ticket_id: int):
+def delete_ticket(ticket_id: int) -> None | dict:
     return requests.delete(url=f'{server_url}/ticket/delete/{ticket_id}').json()

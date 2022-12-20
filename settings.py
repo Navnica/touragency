@@ -1,7 +1,7 @@
 # Global
 DEBUG = True
-SERVER_HOST = 'localhost'
-SERVER_PORT = 8000
+SERVER_HOST = '127.0.0.1'
+SERVER_PORT = 5000
 
 # Server settings
 DATABASE_PATH = './server/sql_base/database.db'
