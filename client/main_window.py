@@ -30,9 +30,20 @@ def include_widgets_by_pl(element: dict[str, QtWidgets.QWidget]):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+        try:
+            if 'error' in self.__connect_check():
+                print('Server not available')
+                exit()
+        except TypeError:
+            pass
+
         self.__initUi()
         self.__setupUi()
         self.show()
+
+    @client.api.resolvers.server_available
+    def __connect_check(self) -> None:
+        return None
 
     def __initUi(self) -> None:
         self.central_widget = QtWidgets.QWidget()

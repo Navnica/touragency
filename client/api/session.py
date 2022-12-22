@@ -13,6 +13,7 @@ class Session:
         power_level=0
     )
     error = None
+    server_available: bool = False
 
     def login(self, user_login, user_password) -> None:
         answer: User | dict = client.api.resolvers.login(user_login, user_password)
