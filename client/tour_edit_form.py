@@ -54,8 +54,6 @@ class TourEdit(QtWidgets.QDialog):
         self.hours_line_edit.setText(self.parent().hours.text())
 
         for c in client.api.resolvers.get_all_countries():
-            c = client.api.resolvers.get_country_by_id(c['id'])
-
             self.countries[c['name']] = c['id']
 
             if self.parent().country.text() == c['name']:

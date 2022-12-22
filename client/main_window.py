@@ -450,6 +450,8 @@ class TicketList(QtWidgets.QWidget):
         new_ticket.set_ticket_info(ticket_id, country, date_start, date_end)
         self.scroll_layout.addWidget(new_ticket)
 
+        include_widgets_by_pl(self.__dict__)
+
     def clear_tickets(self) -> None:
         for ticket in dict(self.scroll_widget.__dict__):
             if type(self.scroll_widget.__dict__[ticket]) == TicketItem:
@@ -466,6 +468,8 @@ class TicketList(QtWidgets.QWidget):
 
 
 class TicketItem(QtWidgets.QWidget):
+    now_edit: bool = False
+
     def __init__(self) -> None:
         super().__init__()
         self.__initUi()
@@ -474,27 +478,35 @@ class TicketItem(QtWidgets.QWidget):
     def __initUi(self) -> None:
         self.main_h_layout = QtWidgets.QHBoxLayout()
         self.country = QtWidgets.QLabel()
+        self.country_combo_box = QtWidgets.QComboBox()
         self.date_start = QtWidgets.QLabel()
         self.date_end = QtWidgets.QLabel()
+        self.edit_button = QtWidgets.QPushButton()
         self.delete_button = QtWidgets.QPushButton()
 
     def __setupUi(self) -> None:
         self.setLayout(self.main_h_layout)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
-        self.setProperty('power_level', 1)
-
         self.main_h_layout.addWidget(self.country)
+        self.main_h_layout.addWidget(self.country_combo_box)
         self.main_h_layout.addWidget(self.date_start)
         self.main_h_layout.addWidget(self.date_end)
+        self.main_h_layout.addWidget(self.edit_button)
         self.main_h_layout.addWidget(self.delete_button)
 
+        self.edit_button.setIcon(QtGui.QPixmap(get_pixmap_path('edit.png')))
         self.delete_button.setIcon(QtGui.QPixmap(get_pixmap_path('delete.png')))
+        self.edit_button.setFixedSize(24, 24)
         self.delete_button.setFixedSize(24, 24)
+
+        self.edit_button.setProperty('power_level', 3)
 
         self.country.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.date_start.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.date_end.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        self.country_combo_box.hide()
 
     def set_ticket_info(self, ticket_id: int, country: str, date_start, date_end) -> None:
         date_start = date_start[:10].replace('-', '.')
@@ -504,9 +516,37 @@ class TicketItem(QtWidgets.QWidget):
         self.date_start.setText(date_start)
         self.date_end.setText(date_end)
 
-        self.delete_button.clicked.connect(lambda: self.delete_ticket(ticket_id))
+        self.edit_button.clicked.connect(lambda: self.edit(ticket_id))
+        self.delete_button.clicked.connect(lambda: self.delete(ticket_id))
 
-    def delete_ticket(self, ticket_id: int) -> None:
+    def edit(self, ticked_id):
+        global session
+
+        self.now_edit = not self.now_edit
+
+        if self.now_edit:
+            for tour in client.api.resolvers.get_all_tours():
+                country = client.api.resolvers.get_country_by_id(tour['country_id'])
+                country = f'{country["id"]} : {country["name"]}'
+                self.country_combo_box.insertItem(self.country_combo_box.count(), country)
+
+        else:
+            ticket = Ticket(
+                id=ticked_id,
+                tour_id=int(self.country_combo_box.currentText().replace(' ', '').split(':')[0]),
+                user_id=int(session.user.id),
+                date_start=self.date_start.text(),
+                date_end=self.date_end.text()
+            )
+
+            client.api.resolvers.update_ticket(ticket)
+
+            self.country.setText(self.country_combo_box.currentText().replace(' ', '').split(':')[1])
+
+        self.country.setHidden(self.now_edit)
+        self.country_combo_box.setHidden(not self.now_edit)
+
+    def delete(self, ticket_id: int) -> None:
         client.api.resolvers.delete_ticket(ticket_id)
         self.parent().__dict__[ticket_id].close()
         self.parent().__dict__.pop(ticket_id)

@@ -107,6 +107,16 @@ def new_ticket(ticket: models.Ticket) -> dict:
     return answer
 
 
+def update_ticket(ticket: models.Ticket):
+    data = f'{{"tour_id": "{ticket.tour_id}", "date_start": "{ticket.date_start}", "date_end": "{ticket.date_end}", "user_id": "{ticket.user_id}"}}'
+
+    answer = requests.put(
+        url=f'{server_url}/ticket/update/{ticket.id}',
+        data=data
+    ).json()
+
+    return answer
+
 @server_available
 def delete_ticket(ticket_id: int) -> None | dict:
     return requests.delete(url=f'{server_url}/ticket/delete/{ticket_id}').json()

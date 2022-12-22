@@ -48,8 +48,6 @@ class TourCreate(QtWidgets.QDialog):
         self.close_button.clicked.connect(self.on_close_click)
 
         for c in client.api.resolvers.get_all_countries():
-            c = client.api.resolvers.get_country_by_id(c['id'])
-
             self.countries[c['name']] = c['id']
 
             self.country_combo_box.insertItem(self.country_combo_box.count(), c['name'])
