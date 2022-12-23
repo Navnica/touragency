@@ -101,10 +101,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.authorization()
 
     def authorization(self):
+        global session
+
         self.authorization_menu.hide()
         self.user_profile.show()
         self.user_profile.fill_line_edits()
-        self.ticket_list.update_tickets()
+        self.ticket_list.update_tickets(session.user.id)
         self.country_list.update_countries()
 
         include_widgets_by_pl(self.__dict__)
@@ -235,6 +237,7 @@ class TourList(QtWidgets.QWidget):
 
     def __initUi(self) -> None:
         self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.tool_h_layout = QtWidgets.QHBoxLayout()
         self.scroll_area = QtWidgets.QScrollArea()
         self.scroll_widget = QtWidgets.QWidget()
         self.scroll_layout = QtWidgets.QVBoxLayout()
@@ -242,10 +245,13 @@ class TourList(QtWidgets.QWidget):
 
     def __setupUi(self) -> None:
         self.setLayout(self.main_v_layout)
-        self.main_v_layout.setContentsMargins(0, 5, 0, 0)
+        self.main_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.tool_h_layout.setContentsMargins(0, 10, 0, 0)
+        self.tool_h_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.scroll_area.setWidget(self.scroll_widget)
         self.scroll_widget.setLayout(self.scroll_layout)
-        self.main_v_layout.addWidget(self.create_tour_button)
+        self.main_v_layout.addLayout(self.tool_h_layout)
+        self.tool_h_layout.addWidget(self.create_tour_button)
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
@@ -381,6 +387,9 @@ class TicketList(QtWidgets.QWidget):
 
     def __initUi(self) -> None:
         self.main_v_layout = QtWidgets.QVBoxLayout()
+        self.tool_h_layout = QtWidgets.QHBoxLayout()
+        self.user_search_line_edit = QtWidgets.QLineEdit()
+        self.search_button = QtWidgets.QPushButton()
         self.scroll_area = QtWidgets.QScrollArea()
         self.scroll_widget = QtWidgets.QWidget()
         self.scroll_layout = QtWidgets.QVBoxLayout()
@@ -388,12 +397,23 @@ class TicketList(QtWidgets.QWidget):
     def __setupUi(self) -> None:
         self.setLayout(self.main_v_layout)
         self.main_v_layout.setContentsMargins(0, 0, 0, 0)
+        self.tool_h_layout.setContentsMargins(10, 10, 10, 0)
+        self.main_v_layout.addLayout(self.tool_h_layout)
+        self.tool_h_layout.addWidget(self.user_search_line_edit)
+        self.tool_h_layout.addWidget(self.search_button)
         self.scroll_area.setWidget(self.scroll_widget)
         self.scroll_widget.setLayout(self.scroll_layout)
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
+        self.search_button.setMaximumSize(24, 24)
+        self.search_button.setIcon(QtGui.QPixmap(get_pixmap_path('search.png')))
+
+        self.search_button.clicked.connect(self.on_find_button_click)
         self.add_ticket_signal.connect(self.add_ticket)
+
+        self.user_search_line_edit.setProperty('power_level', 3)
+        self.search_button.setProperty('power_level', 3)
 
     def new_ticket(self, tour_id: int):
         global session
@@ -411,22 +431,32 @@ class TicketList(QtWidgets.QWidget):
 
         client.api.resolvers.new_ticket(new_ticket)
 
-        self.update_tickets()
+        self.update_tickets(session.user.id)
 
-    def update_tickets(self) -> None:
+    def on_find_button_click(self):
+        global main_win
+
+        if not self.user_search_line_edit.text().isdigit():
+            return main_win.show_error(
+                text='Search field must contains id',
+                error=True,
+                parent=self
+            )
+
+        self.update_tickets(int(self.user_search_line_edit.text()))
+
+    def update_tickets(self, search_id: int) -> None:
         self.clear_tickets()
-        threading.Thread(target=self.load_tickets).start()
+        threading.Thread(target=lambda: self.load_tickets(search_id)).start()
 
-    def load_tickets(self) -> None:
-        global session
-
+    def load_tickets(self, search_id: int) -> None:
         self.clear_tickets()
 
         for ticket in client.api.resolvers.get_all_tickets():
             if self.stop_flag:
                 exit()
 
-            if not ticket['user_id'] == session.user.id:
+            if not ticket['user_id'] == search_id:
                 continue
 
             country = client.api.resolvers.get_tour_by_id(ticket['tour_id'])
@@ -534,14 +564,24 @@ class TicketItem(QtWidgets.QWidget):
             ticket = Ticket(
                 id=ticked_id,
                 tour_id=int(self.country_combo_box.currentText().replace(' ', '').split(':')[0]),
-                user_id=int(session.user.id),
+                user_id=int(client.api.resolvers.get_ticket_by_id(ticked_id)['user_id']),
                 date_start=self.date_start.text(),
                 date_end=self.date_end.text()
             )
 
             client.api.resolvers.update_ticket(ticket)
 
+            answer = client.api.resolvers.get_ticket_by_id(ticked_id)
+
             self.country.setText(self.country_combo_box.currentText().replace(' ', '').split(':')[1])
+
+            date_start = answer['date_start'][:10].replace('-', '.')
+            date_end = answer['date_end'][:10].replace('-', '.')
+
+            self.date_start.setText(date_start)
+            self.date_end.setText(date_end)
+
+            self.country_combo_box.clear()
 
         self.country.setHidden(self.now_edit)
         self.country_combo_box.setHidden(not self.now_edit)
@@ -725,6 +765,7 @@ class UserProfile(QtWidgets.QWidget):
         self.password_label = QtWidgets.QLabel()
         self.confirm_password_label = QtWidgets.QLabel()
         self.power_level_label = QtWidgets.QLabel()
+        self.user_id_label = QtWidgets.QLabel()
 
         self.name_line_edit = QtWidgets.QLineEdit()
         self.surname_line_edit = QtWidgets.QLineEdit()
@@ -748,6 +789,7 @@ class UserProfile(QtWidgets.QWidget):
         self.main_v_layout.addLayout(self.password_layout)
         self.main_v_layout.addLayout(self.confirm_layout)
         self.main_v_layout.addWidget(self.power_level_label)
+        self.main_v_layout.addWidget(self.user_id_label)
         self.main_v_layout.addSpacerItem(self.spacer)
         self.main_v_layout.addLayout(self.button_layout)
 
@@ -775,6 +817,7 @@ class UserProfile(QtWidgets.QWidget):
         self.password_label.setText('Password:')
         self.confirm_password_label.setText('Confirm:')
         self.power_level_label.setText('Power level: 0')
+        self.user_id_label.setText('ID: 0')
 
         self.name_line_edit.setFixedWidth(150)
         self.surname_line_edit.setFixedWidth(150)
@@ -807,6 +850,7 @@ class UserProfile(QtWidgets.QWidget):
         self.phone_line_edit.setText(session.user.phone)
         self.password_line_edit.setText(session.user.password)
         self.power_level_label.setText(f'Power level: {str(session.user.power_level)}')
+        self.user_id_label.setText(f'ID: {str(session.user.id)}')
 
     def on_edit_click(self) -> None:
         self.edit_button.setEnabled(False)

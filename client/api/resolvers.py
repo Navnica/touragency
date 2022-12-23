@@ -1,8 +1,8 @@
 from typing import Callable, Tuple, Any, Dict
-
 import requests
 from server.sql_base import models
 import settings
+import datetime
 
 server_url = f'http://{settings.SERVER_HOST}:{settings.SERVER_PORT}'
 
@@ -91,6 +91,11 @@ def get_all_countries():
 
 # Ticket
 @server_available
+def get_ticket_by_id(ticket_id: int) -> dict:
+    return requests.get(url=f'{server_url}/ticket/get/{ticket_id}').json()
+
+
+@server_available
 def get_all_tickets() -> dict:
     return requests.get(url=f'{server_url}/ticket/get_all').json()
 
@@ -108,7 +113,11 @@ def new_ticket(ticket: models.Ticket) -> dict:
 
 
 def update_ticket(ticket: models.Ticket):
-    data = f'{{"tour_id": "{ticket.tour_id}", "date_start": "{ticket.date_start}", "date_end": "{ticket.date_end}", "user_id": "{ticket.user_id}"}}'
+    tour = get_tour_by_id(ticket.tour_id)
+    date_start = datetime.datetime.now()
+    date_end = date_start + datetime.timedelta(hours=int(tour['hours']))
+
+    data = f'{{"tour_id": "{ticket.tour_id}", "date_start": "{str(date_start)}", "date_end": "{str(date_end)}", "user_id": "{ticket.user_id}"}}'
 
     answer = requests.put(
         url=f'{server_url}/ticket/update/{ticket.id}',
