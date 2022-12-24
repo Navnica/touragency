@@ -101,12 +101,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.authorization()
 
     def authorization(self):
-        global session
-
         self.authorization_menu.hide()
         self.user_profile.show()
         self.user_profile.fill_line_edits()
-        self.ticket_list.update_tickets(session.user.id)
+        self.ticket_list.update_tickets()
         self.country_list.update_countries()
 
         include_widgets_by_pl(self.__dict__)
@@ -255,8 +253,8 @@ class TourList(QtWidgets.QWidget):
         self.main_v_layout.addWidget(self.scroll_area)
         self.scroll_area.setWidgetResizable(True)
 
-        self.create_tour_button.setText('New')
-        self.create_tour_button.setFixedWidth(40)
+        self.create_tour_button.setIcon(QtGui.QPixmap(get_pixmap_path('add.png')))
+        self.create_tour_button.setFixedSize(24, 24)
         self.create_tour_button.setProperty('power_level', 2)
 
         self.create_tour_button.clicked.connect(self.create_tour)
@@ -431,10 +429,10 @@ class TicketList(QtWidgets.QWidget):
 
         client.api.resolvers.new_ticket(new_ticket)
 
-        self.update_tickets(session.user.id)
+        self.update_tickets()
 
     def on_find_button_click(self):
-        global main_win
+        global main_win, session
 
         if not self.user_search_line_edit.text().isdigit():
             return main_win.show_error(
@@ -445,19 +443,23 @@ class TicketList(QtWidgets.QWidget):
 
         self.update_tickets(int(self.user_search_line_edit.text()))
 
-    def update_tickets(self, search_id: int) -> None:
+    def update_tickets(self, replaced_id: int = 0) -> None:
         self.clear_tickets()
-        threading.Thread(target=lambda: self.load_tickets(search_id)).start()
+        threading.Thread(target=self.load_tickets, args=(replaced_id, )).start()
 
-    def load_tickets(self, search_id: int) -> None:
-        self.clear_tickets()
+    def load_tickets(self, replaced_id: int = 0) -> None:
+        global session
 
         for ticket in client.api.resolvers.get_all_tickets():
             if self.stop_flag:
                 exit()
 
-            if not ticket['user_id'] == search_id:
-                continue
+            if replaced_id == 0:
+                if ticket['user_id'] != session.user.id:
+                    continue
+            else:
+                if ticket['user_id'] != replaced_id:
+                    continue
 
             country = client.api.resolvers.get_tour_by_id(ticket['tour_id'])
 
