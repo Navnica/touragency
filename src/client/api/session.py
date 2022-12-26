@@ -1,5 +1,5 @@
-import client.api.resolvers
-from server.sql_base.models import User
+import src.client.api.resolvers
+from src.server.database.models import User
 
 
 class Session:
@@ -16,7 +16,7 @@ class Session:
     server_available: bool = False
 
     def login(self, user_login, user_password) -> None:
-        answer: User | dict = client.api.resolvers.login(user_login, user_password)
+        answer: User | dict = src.client.api.resolvers.login(user_login, user_password)
 
         match answer:
             case {'error': error}:
@@ -34,7 +34,7 @@ class Session:
                 self.auth = True
 
     def register(self, user: User) -> None:
-        answer: User | dict = client.api.resolvers.register(user)
+        answer: User | dict = src.client.api.resolvers.register(user)
 
         match answer:
             case {'error': error}:
@@ -44,7 +44,7 @@ class Session:
                 self.auth = True
 
     def update(self, user: User) -> None:
-        answer: User | dict = client.api.resolvers.update_user(user)
+        answer: User | dict = src.client.api.resolvers.update_user(user)
 
         match answer:
             case {'error': error}:

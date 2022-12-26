@@ -1,5 +1,5 @@
-from server.sql_base.models import Country
-from server.resolves.user import dbmanager
+from src.server.database.models import Country
+from src.server.resolves.user import dbmanager
 
 
 def get(country_id: int) -> Country | None:

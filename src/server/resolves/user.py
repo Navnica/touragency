@@ -1,6 +1,6 @@
 import settings
-from server.sql_base.dbmanager import DbManager
-from server.sql_base.models import User
+from src.server.database.dbmanager import DbManager
+from src.server.database.models import User
 
 dbmanager = DbManager(db_path=settings.DATABASE_PATH)
 

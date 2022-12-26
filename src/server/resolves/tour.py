@@ -1,5 +1,5 @@
-from server.sql_base.models import Tour
-from server.resolves.user import dbmanager
+from src.server.database.models import Tour
+from src.server.resolves.user import dbmanager
 
 
 def get(tour_id: int) -> Tour | None:

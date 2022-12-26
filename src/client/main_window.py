@@ -1,12 +1,12 @@
 from PySide6 import QtWidgets, QtCore, QtGui
-from client.login_form import LoginWindow
-from client.register_form import RegisterWindow
-from client.tools import get_pixmap_path
-from client.api.session import Session
-from client.tour_edit_form import TourEdit
-from client.tour_cteate_form import TourCreate
-import client.api.resolvers
-from server.sql_base.models import User, Ticket, Tour
+from src.client.login_form import LoginWindow
+from src.client.register_form import RegisterWindow
+from src.client.tools import get_pixmap_path
+from src.client.api.session import Session
+from src.client.tour_edit_form import TourEdit
+from src.client.tour_cteate_form import TourCreate
+import src.client.api.resolvers
+from src.server.database.models import User, Ticket
 import threading
 import datetime
 
@@ -41,7 +41,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.__setupUi()
         self.show()
 
-    @client.api.resolvers.server_available
+    @src.client.api.resolvers.server_available
     def __connect_check(self) -> None:
         return None
 
@@ -270,11 +270,11 @@ class TourList(QtWidgets.QWidget):
         threading.Thread(target=self.load_tours).start()
 
     def load_tours(self) -> None:
-        for tour in client.api.resolvers.get_all_tours():
+        for tour in src.client.api.resolvers.get_all_tours():
             if self.stop_flag:
                 exit()
 
-            country = client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
+            country = src.client.api.resolvers.get_country_by_id(int(tour['country_id']))['name']
 
             if not country:
                 continue
@@ -364,7 +364,7 @@ class TourItem(QtWidgets.QWidget):
         TourEdit(self, tour_id)
 
     def delete_tour(self, tour_id: int) -> None:
-        client.api.resolvers.delete_tour(tour_id)
+        src.client.api.resolvers.delete_tour(tour_id)
         self.tour_updated()
 
     def tour_updated(self):
@@ -416,7 +416,7 @@ class TicketList(QtWidgets.QWidget):
     def new_ticket(self, tour_id: int):
         global session
 
-        tour_info = client.api.resolvers.get_tour_by_id(tour_id)
+        tour_info = src.client.api.resolvers.get_tour_by_id(tour_id)
         date_start = datetime.datetime.now()
         date_end = date_start + datetime.timedelta(hours=int(tour_info['hours']))
 
@@ -427,7 +427,7 @@ class TicketList(QtWidgets.QWidget):
             user_id=session.user.id
         )
 
-        client.api.resolvers.new_ticket(new_ticket)
+        src.client.api.resolvers.new_ticket(new_ticket)
 
         self.update_tickets()
 
@@ -450,7 +450,7 @@ class TicketList(QtWidgets.QWidget):
     def load_tickets(self, replaced_id: int = 0) -> None:
         global session
 
-        for ticket in client.api.resolvers.get_all_tickets():
+        for ticket in src.client.api.resolvers.get_all_tickets():
             if self.stop_flag:
                 exit()
 
@@ -461,12 +461,12 @@ class TicketList(QtWidgets.QWidget):
                 if ticket['user_id'] != replaced_id:
                     continue
 
-            country = client.api.resolvers.get_tour_by_id(ticket['tour_id'])
+            country = src.client.api.resolvers.get_tour_by_id(ticket['tour_id'])
 
             if not country:
                 continue
 
-            country = client.api.resolvers.get_country_by_id(int(country['country_id']))['name']
+            country = src.client.api.resolvers.get_country_by_id(int(country['country_id']))['name']
 
             self.add_ticket_signal.emit(
                 ticket['id'],
@@ -496,7 +496,7 @@ class TicketList(QtWidgets.QWidget):
         include_widgets_by_pl(self.__dict__)
 
     def delete_ticket(self, ticket_id: int) -> None:
-        client.api.resolvers.delete_ticket(ticket_id)
+        src.client.api.resolvers.delete_ticket(ticket_id)
 
 
 class TicketItem(QtWidgets.QWidget):
@@ -557,8 +557,8 @@ class TicketItem(QtWidgets.QWidget):
         self.now_edit = not self.now_edit
 
         if self.now_edit:
-            for tour in client.api.resolvers.get_all_tours():
-                country = client.api.resolvers.get_country_by_id(tour['country_id'])
+            for tour in src.client.api.resolvers.get_all_tours():
+                country = src.client.api.resolvers.get_country_by_id(tour['country_id'])
                 country = f'{country["id"]} : {country["name"]}'
                 self.country_combo_box.insertItem(self.country_combo_box.count(), country)
 
@@ -566,14 +566,14 @@ class TicketItem(QtWidgets.QWidget):
             ticket = Ticket(
                 id=ticked_id,
                 tour_id=int(self.country_combo_box.currentText().replace(' ', '').split(':')[0]),
-                user_id=int(client.api.resolvers.get_ticket_by_id(ticked_id)['user_id']),
+                user_id=int(src.client.api.resolvers.get_ticket_by_id(ticked_id)['user_id']),
                 date_start=self.date_start.text(),
                 date_end=self.date_end.text()
             )
 
-            client.api.resolvers.update_ticket(ticket)
+            src.client.api.resolvers.update_ticket(ticket)
 
-            answer = client.api.resolvers.get_ticket_by_id(ticked_id)
+            answer = src.client.api.resolvers.get_ticket_by_id(ticked_id)
 
             self.country.setText(self.country_combo_box.currentText().replace(' ', '').split(':')[1])
 
@@ -589,7 +589,7 @@ class TicketItem(QtWidgets.QWidget):
         self.country_combo_box.setHidden(not self.now_edit)
 
     def delete(self, ticket_id: int) -> None:
-        client.api.resolvers.delete_ticket(ticket_id)
+        src.client.api.resolvers.delete_ticket(ticket_id)
         self.parent().__dict__[ticket_id].close()
         self.parent().__dict__.pop(ticket_id)
 
@@ -639,7 +639,7 @@ class CountryList(QtWidgets.QWidget):
 
         self.clear_countries()
 
-        for country in client.api.resolvers.get_all_countries():
+        for country in src.client.api.resolvers.get_all_countries():
             if self.stop_flag:
                 exit()
 

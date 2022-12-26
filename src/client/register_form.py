@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QSpacerItem, QMessageBox
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt
-from client.api.session import Session
-from server.sql_base.models import User
+from src.client.api.session import Session
+from src.server.database.models import User
 
 
 class RegisterWindow(QDialog):

@@ -1,8 +1,8 @@
 import uvicorn
 import fastapi
 from fastapi.responses import RedirectResponse
-from server.router import routers
-from server.sql_base.dbmanager import DbManager
+from src.server.router import routers
+from src.server.database.dbmanager import DbManager
 import settings
 
 app = fastapi.FastAPI(title='taAPI',
@@ -26,4 +26,4 @@ if __name__ == '__main__':
         except:
             pass
 
-    uvicorn.run('start_server:app', reload=True, host=settings.SERVER_HOST, port=settings.SERVER_PORT)
+    uvicorn.run('server:app', reload=True, host=settings.SERVER_HOST, port=settings.SERVER_PORT)

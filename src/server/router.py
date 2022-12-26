@@ -1,4 +1,4 @@
-from server.routers import user, country, tour, ticket
+from src.server.routers import user, country, tour, ticket
 
 routers = (user.router,
            country.router,

@@ -1,7 +1,7 @@
-from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel, QErrorMessage, QMessageBox
+from PySide6.QtWidgets import QDialog, QPushButton, QLineEdit, QVBoxLayout, QHBoxLayout, QLabel
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtCore import Qt
-from client.api.session import Session
+from src.client.api.session import Session
 
 
 class LoginWindow(QDialog):

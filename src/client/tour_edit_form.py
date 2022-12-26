@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
-import client.api.resolvers
-from server.sql_base.models import Tour
+import src.client.api.resolvers
+from src.server.database.models import Tour
 
 
 class TourEdit(QtWidgets.QDialog):
@@ -53,7 +53,7 @@ class TourEdit(QtWidgets.QDialog):
         self.price_line_edit.setText(self.parent().price.text())
         self.hours_line_edit.setText(self.parent().hours.text())
 
-        for c in client.api.resolvers.get_all_countries():
+        for c in src.client.api.resolvers.get_all_countries():
             self.countries[c['name']] = c['id']
 
             if self.parent().country.text() == c['name']:
@@ -86,7 +86,7 @@ class TourEdit(QtWidgets.QDialog):
             price=self.price_line_edit.text()
         )
 
-        answer = client.api.resolvers.update_tour(tour)
+        answer = src.client.api.resolvers.update_tour(tour)
 
         match answer:
             case {'error': error}:

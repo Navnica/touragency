@@ -1,6 +1,6 @@
 from typing import Callable, Tuple, Any, Dict
 import requests
-from server.sql_base import models
+from src.server.database import models
 import settings
 import datetime
 

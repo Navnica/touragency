@@ -1,6 +1,6 @@
 import fastapi
-from server.sql_base.models import Tour
-from server.resolves import tour
+from src.server.database.models import Tour
+from src.server.resolves import tour
 
 router = fastapi.APIRouter(prefix='/tour', tags=['Tour'])
 

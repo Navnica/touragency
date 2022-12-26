@@ -1,5 +1,5 @@
-from server.sql_base.models import Ticket
-from server.resolves.user import dbmanager
+from src.server.database.models import Ticket
+from src.server.resolves.user import dbmanager
 
 
 def get(ticket_id: int) -> Ticket | None:

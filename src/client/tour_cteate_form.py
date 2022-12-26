@@ -1,6 +1,6 @@
 from PySide6 import QtWidgets, QtCore
-import client.api.resolvers
-from server.sql_base.models import Tour
+import src.client.api.resolvers
+from src.server.database.models import Tour
 
 
 class TourCreate(QtWidgets.QDialog):
@@ -47,7 +47,7 @@ class TourCreate(QtWidgets.QDialog):
         self.create_button.clicked.connect(self.on_create_click)
         self.close_button.clicked.connect(self.on_close_click)
 
-        for c in client.api.resolvers.get_all_countries():
+        for c in src.client.api.resolvers.get_all_countries():
             self.countries[c['name']] = c['id']
 
             self.country_combo_box.insertItem(self.country_combo_box.count(), c['name'])
@@ -76,7 +76,7 @@ class TourCreate(QtWidgets.QDialog):
             price=self.price_line_edit.text()
         )
 
-        answer = client.api.resolvers.create_tour(tour)
+        answer = src.client.api.resolvers.create_tour(tour)
 
         match answer:
             case {'error': error}:
