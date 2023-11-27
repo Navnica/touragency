@@ -23,9 +23,9 @@ def server_available(func) -> Callable[[tuple[Any, ...], dict[str, Any]], dict[s
 def login(user_login: str, user_password: str) -> dict | None:
     answer = requests.post(
         url=f'{server_url}/user/login',
-        data=f'{{ "phone": "{user_login}", "password": "{user_password}" }}').json()
+        data=f'{{"phone": "{user_login}", "password": "{user_password}"}}')
 
-    return answer
+    return answer.json()
 
 
 @server_available
@@ -34,20 +34,20 @@ def register(user: models.User) -> dict | int:
 
     answer = requests.post(
         url=f'{server_url}/user/create',
-        data=data).json()
+        data=data)
 
-    return answer
+    return answer.json()
 
 
 @server_available
 def update_user(user: models.User) -> None | dict:
-    data = f'{{"name": "{user.name}", "surname": "{user.surname}", "phone": "{user.phone}", "password": "{user.password}"}}'
+    data = f'{"name": "{user.name}", "surname": "{user.surname}", "phone": "{user.phone}", "password": "{user.password}"}'
 
     answer = requests.put(
         url=f'{server_url}/user/update/{user.id}',
-        data=data).json()
+        data=data)
 
-    return answer
+    return answer.json()
 
 
 # Tour

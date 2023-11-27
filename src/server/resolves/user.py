@@ -13,7 +13,8 @@ def get(user_id: int) -> User | None:
         name=res[1],
         surname=res[2],
         phone=res[3],
-        power_level=res[5]
+        power_level=res[5],
+        password=''
     )
 
 
@@ -29,7 +30,8 @@ def get_all() -> list[User] | dict:
                 name=user[1],
                 surname=user[2],
                 phone=user[3],
-                power_level=user[5]
+                power_level=user[5],
+                password=''
             ))
 
     return res

@@ -9,7 +9,7 @@ class Session:
         name='',
         surname='',
         phone='',
-        pasword='',
+        password='',
         power_level=0
     )
     error = None
